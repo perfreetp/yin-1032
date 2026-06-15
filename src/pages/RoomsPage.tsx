@@ -26,6 +26,8 @@ import {
   ChevronRight,
   Sparkles,
   Play,
+  Baby,
+  ShowerHead,
 } from 'lucide-react';
 import GlassCard from '@/components/common/GlassCard';
 import StatBlock from '@/components/common/StatBlock';
@@ -33,19 +35,10 @@ import GradientButton from '@/components/common/GradientButton';
 import { useAppStore } from '@/store/useAppStore';
 import { useDeviceStore } from '@/store/useDeviceStore';
 import { useSceneStore } from '@/store/useSceneStore';
+import { useHouseStore } from '@/store/useHouseStore';
 import { cn } from '@/lib/utils';
 import type { Device, DeviceCategory } from '@/types/device';
 import type { Scene } from '@/types/scene';
-
-const MOCK_ROOMS = [
-  { id: 'room-villa-living', name: '客厅', icon: 'sofa', type: 'living' },
-  { id: 'room-villa-master', name: '主卧', icon: 'bed', type: 'bedroom' },
-  { id: 'room-villa-second', name: '次卧', icon: 'bed-double', type: 'bedroom' },
-  { id: 'room-villa-kitchen', name: '厨房', icon: 'cooking-pot', type: 'kitchen' },
-  { id: 'room-villa-bathroom', name: '卫生间', icon: 'bath', type: 'bathroom' },
-  { id: 'room-villa-study', name: '书房', icon: 'book-open', type: 'study' },
-  { id: 'room-villa-balcony', name: '阳台', icon: 'sun', type: 'balcony' },
-];
 
 const roomIconMap: Record<string, React.ReactNode> = {
   sofa: <Sofa className="w-5 h-5" />,
@@ -55,6 +48,8 @@ const roomIconMap: Record<string, React.ReactNode> = {
   bath: <Bath className="w-5 h-5" />,
   'book-open': <BookOpenIcon className="w-5 h-5" />,
   sun: <Sun className="w-5 h-5" />,
+  baby: <Baby className="w-5 h-5" />,
+  'shower-head': <ShowerHead className="w-5 h-5" />,
 };
 
 const categoryIcons: Record<DeviceCategory, React.ReactNode> = {
@@ -208,10 +203,22 @@ const EnvCard = ({ icon, label, value, unit, color, status }: {
 );
 
 export default function RoomsPage() {
-  const [activeRoomId, setActiveRoomId] = useState(MOCK_ROOMS[0].id);
+  const [activeRoomId, setActiveRoomId] = useState<string>('');
   const currentHouseId = useAppStore((state) => state.currentHouseId);
+  const { getRoomsByHouse, rooms } = useHouseStore();
   const { devices, fetchDevices, toggleDevice, batchToggle } = useDeviceStore();
-  const { scenes, fetchScenes, runScene, activeSceneId } = useSceneStore();
+  const { scenes, fetchScenes, runScene } = useSceneStore();
+
+  const currentRooms = useMemo(() => {
+    if (!currentHouseId) return [];
+    return getRoomsByHouse(currentHouseId);
+  }, [currentHouseId, getRoomsByHouse]);
+
+  useEffect(() => {
+    if (currentRooms.length > 0 && !currentRooms.find((r) => r.id === activeRoomId)) {
+      setActiveRoomId(currentRooms[0].id);
+    }
+  }, [currentRooms, activeRoomId]);
 
   useEffect(() => {
     if (!currentHouseId) return;
@@ -219,7 +226,7 @@ export default function RoomsPage() {
     fetchScenes(currentHouseId);
   }, [currentHouseId]);
 
-  const activeRoom = MOCK_ROOMS.find((r) => r.id === activeRoomId);
+  const activeRoom = rooms.find((r) => r.id === activeRoomId) || currentRooms[0];
   const roomDevices = useMemo(() => devices.filter((d) => d.roomId === activeRoomId), [devices, activeRoomId]);
   const roomScenes = useMemo(() => scenes.slice(0, 8), [scenes]);
 
@@ -266,7 +273,7 @@ export default function RoomsPage() {
     <div className="space-y-6 animate-fade-in">
       <div className="glass rounded-2xl p-1.5 overflow-x-auto scrollbar-thin">
         <div className="flex gap-2 min-w-max">
-          {MOCK_ROOMS.map((room) => (
+          {currentRooms.map((room) => (
             <button
               key={room.id}
               onClick={() => setActiveRoomId(room.id)}
@@ -277,7 +284,7 @@ export default function RoomsPage() {
                   : 'text-gray-300 hover:bg-white/5 hover:text-white'
               )}
             >
-              {roomIconMap[room.icon]}
+              {roomIconMap[room.icon] || roomIconMap['sofa']}
               <span className="font-medium text-sm">{room.name}</span>
               <span className={cn(
                 'text-xs px-2 py-0.5 rounded-full',

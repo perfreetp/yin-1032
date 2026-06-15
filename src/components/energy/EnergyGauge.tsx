@@ -17,7 +17,7 @@ const EnergyGauge = ({ size = 280, strokeWidth = 22, className }: EnergyGaugePro
 
   const todayUsage = summary.todayUsage;
   const currentPower = summary.peakPower;
-  const maxUsage = 30;
+  const maxUsage = 80;
   const percentage = Math.min((todayUsage / maxUsage) * 100, 100);
   const animatedPercentage = Math.min((animatedUsage / maxUsage) * 100, 100);
 

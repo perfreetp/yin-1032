@@ -40,6 +40,7 @@ import GlassCard from '@/components/common/GlassCard';
 import GradientButton from '@/components/common/GradientButton';
 import { useAppStore } from '@/store/useAppStore';
 import { useDeviceStore } from '@/store/useDeviceStore';
+import { useHouseStore } from '@/store/useHouseStore';
 import { cn } from '@/lib/utils';
 import type { Device, DeviceCategory } from '@/types/device';
 
@@ -51,17 +52,6 @@ const CATEGORY_TABS: { key: DeviceCategory | 'all'; label: string; icon: React.R
   { key: 'lock', label: '门锁', icon: <Lock className="w-4 h-4" /> },
   { key: 'camera', label: '摄像头', icon: <Camera className="w-4 h-4" /> },
   { key: 'sensor', label: '传感器', icon: <Thermometer className="w-4 h-4" /> },
-];
-
-const MOCK_ROOMS = [
-  { id: 'all', name: '全部房间' },
-  { id: 'room-villa-living', name: '客厅' },
-  { id: 'room-villa-master', name: '主卧' },
-  { id: 'room-villa-second', name: '次卧' },
-  { id: 'room-villa-kitchen', name: '厨房' },
-  { id: 'room-villa-bathroom', name: '卫生间' },
-  { id: 'room-villa-study', name: '书房' },
-  { id: 'room-villa-balcony', name: '阳台' },
 ];
 
 const categoryIcons: Record<DeviceCategory, React.ReactNode> = {
@@ -760,6 +750,7 @@ const PairModal = ({ onClose }: { onClose: () => void }) => (
 
 export default function DevicesPage() {
   const currentHouseId = useAppStore((state) => state.currentHouseId);
+  const { getRoomsByHouse } = useHouseStore();
   const {
     devices,
     selectedDeviceIds,
@@ -779,6 +770,24 @@ export default function DevicesPage() {
   const [detailDevice, setDetailDevice] = useState<Device | null>(null);
   const [showPairModal, setShowPairModal] = useState(false);
   const [roomDropdownOpen, setRoomDropdownOpen] = useState(false);
+
+  const currentRooms = useMemo(() => {
+    if (!currentHouseId) return [];
+    return getRoomsByHouse(currentHouseId);
+  }, [currentHouseId, getRoomsByHouse]);
+
+  const roomOptions = useMemo(() => {
+    return [
+      { id: 'all', name: '全部房间' },
+      ...currentRooms.map((room) => ({ id: room.id, name: room.name })),
+    ];
+  }, [currentRooms]);
+
+  useEffect(() => {
+    if (filterRoomId !== 'all' && !currentRooms.find((r) => r.id === filterRoomId)) {
+      setFilter({ filterRoomId: 'all' as never });
+    }
+  }, [currentRooms, filterRoomId, setFilter]);
 
   useEffect(() => {
     if (!currentHouseId) return;
@@ -830,14 +839,14 @@ export default function DevicesPage() {
               className="h-11 px-4 rounded-xl bg-white/5 border border-white/10 text-white flex items-center gap-2 hover:border-primary-500/30 transition-all min-w-[140px] justify-between"
             >
               <Home className="w-4 h-4 text-gray-400" />
-              <span className="text-sm">{MOCK_ROOMS.find((r) => r.id === filterRoomId)?.name}</span>
+              <span className="text-sm">{roomOptions.find((r) => r.id === filterRoomId)?.name || '全部房间'}</span>
               <ChevronDown className={cn('w-4 h-4 text-gray-400 transition-transform', roomDropdownOpen && 'rotate-180')} />
             </button>
             {roomDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setRoomDropdownOpen(false)} />
                 <div className="absolute top-full mt-2 left-0 right-0 z-20 rounded-xl bg-deepspace-500/95 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden animate-scale-in">
-                  {MOCK_ROOMS.map((room) => (
+                  {roomOptions.map((room) => (
                     <button
                       key={room.id}
                       onClick={() => {

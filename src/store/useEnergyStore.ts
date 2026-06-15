@@ -1,17 +1,15 @@
 import { create } from 'zustand';
 import {
-  energyHourlyTrend,
-  energyDailyTrend,
-  energyByCategory,
-  energyByRoom,
-  energyRank,
+  getEnergyData,
+  getTrendData,
   energySummary,
   type EnergyTrendPoint,
   type EnergyCategoryStat,
   type EnergyRankItem,
+  type TimeRange,
 } from '@/mock/energy';
 
-export type TimeRange = 'day' | 'week' | 'month' | 'year';
+export type { TimeRange };
 
 interface EnergyStore {
   trendData: EnergyTrendPoint[];
@@ -25,35 +23,6 @@ interface EnergyStore {
   setTimeRange: (range: TimeRange) => void;
 }
 
-const getTrendByRange = (range: TimeRange): EnergyTrendPoint[] => {
-  switch (range) {
-    case 'day':
-      return energyHourlyTrend;
-    case 'week':
-      return Array.from({ length: 7 }, (_, i) => {
-        const labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-        const baseVals = [11.2, 12.8, 10.5, 13.6, 14.2, 16.8, 15.3];
-        return {
-          timestamp: Date.now() - (6 - i) * 86400000,
-          label: labels[i],
-          value: Number((baseVals[i] + Math.random() * 2 - 1).toFixed(1)),
-          power: Number((baseVals[i] * 40 + Math.random() * 50).toFixed(0)),
-        };
-      });
-    case 'month':
-      return energyDailyTrend;
-    case 'year':
-      return Array.from({ length: 12 }, (_, i) => ({
-        timestamp: Date.now() - (11 - i) * 86400000 * 30,
-        label: `${i + 1}月`,
-        value: Number((380 + Math.random() * 120 - 60).toFixed(1)),
-        power: 500 + Math.floor(Math.random() * 200),
-      }));
-    default:
-      return energyHourlyTrend;
-  }
-};
-
 export const useEnergyStore = create<EnergyStore>((set, get) => ({
   trendData: [],
   categoryStats: [],
@@ -65,16 +34,19 @@ export const useEnergyStore = create<EnergyStore>((set, get) => ({
   fetchEnergy: async (houseId) => {
     await new Promise((resolve) => setTimeout(resolve, 400));
     const { timeRange } = get();
+    const data = getEnergyData(houseId);
     set({
       houseId,
-      trendData: getTrendByRange(timeRange),
-      categoryStats: energyByCategory,
-      roomStats: energyByRoom,
-      rankList: energyRank,
+      summary: data.summary,
+      trendData: getTrendData(timeRange, houseId),
+      categoryStats: data.categoryStats,
+      roomStats: data.roomStats,
+      rankList: data.rankList,
     });
   },
   setTimeRange: (range) => {
+    const { houseId } = get();
     set({ timeRange: range });
-    set({ trendData: getTrendByRange(range) });
+    set({ trendData: getTrendData(range, houseId) });
   },
 }));

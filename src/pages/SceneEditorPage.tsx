@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -158,6 +158,14 @@ export default function SceneEditorPage() {
   const [errors, setErrors] = useState<{ name?: string; triggers?: string; actions?: string }>({});
   const [isSaving, setIsSaving] = useState(false);
 
+  const editInitializedRef = useRef(false);
+  const createInitializedRef = useRef(false);
+  const editingSceneRef = useRef<Scene | null>(null);
+
+  useEffect(() => {
+    editingSceneRef.current = editingScene;
+  }, [editingScene]);
+
   useEffect(() => {
     if (currentHouseId) {
       fetchScenes(currentHouseId);
@@ -165,34 +173,38 @@ export default function SceneEditorPage() {
   }, [currentHouseId, fetchScenes]);
 
   useEffect(() => {
-    if (isEditMode && scenes.length > 0) {
-      const existingScene = scenes.find((s) => s.id === sceneId);
-      if (existingScene) {
-        setSceneName(existingScene.name);
-        setSelectedIcon(existingScene.icon);
-        setSelectedColor(existingScene.color);
-        setEnabled(existingScene.enabled);
-        setEditingScene(existingScene);
-      }
-    } else if (!isEditMode && !editingScene && currentHouseId) {
-      const newScene: Scene = {
-        id: `scene-temp-${Date.now()}`,
-        name: '',
-        icon: 'sparkles',
-        color: '#3B82F6',
-        houseId: currentHouseId,
-        enabled: true,
-        triggers: [],
-        actions: [],
-        createdAt: Date.now(),
-      };
-      setEditingScene(newScene);
-    }
+    if (!isEditMode || !sceneId || scenes.length === 0) return;
+    if (editInitializedRef.current && editingSceneRef.current) return;
 
-    return () => {
-      setEditingScene(null);
+    const existingScene = scenes.find((s) => s.id === sceneId);
+    if (existingScene) {
+      setSceneName(existingScene.name);
+      setSelectedIcon(existingScene.icon);
+      setSelectedColor(existingScene.color);
+      setEnabled(existingScene.enabled);
+      setEditingScene(existingScene);
+      editInitializedRef.current = true;
+    }
+  }, [isEditMode, sceneId, scenes, setEditingScene]);
+
+  useEffect(() => {
+    if (isEditMode || !currentHouseId) return;
+    if (createInitializedRef.current || editingSceneRef.current) return;
+
+    const newScene: Scene = {
+      id: `scene-temp-${Date.now()}`,
+      name: '',
+      icon: 'sparkles',
+      color: '#3B82F6',
+      houseId: currentHouseId,
+      enabled: true,
+      triggers: [],
+      actions: [],
+      createdAt: Date.now(),
     };
-  }, [isEditMode, sceneId, scenes, setEditingScene, editingScene, currentHouseId]);
+    setEditingScene(newScene);
+    createInitializedRef.current = true;
+  }, [isEditMode, currentHouseId, setEditingScene]);
 
   const currentScene = useMemo(() => {
     if (!editingScene) return null;
