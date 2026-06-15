@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   Play,
@@ -31,10 +32,9 @@ import GlassCard from '@/components/common/GlassCard';
 import StatBlock from '@/components/common/StatBlock';
 import GradientButton from '@/components/common/GradientButton';
 import { useSceneStore } from '@/store/useSceneStore';
+import { useAppStore } from '@/store/useAppStore';
 import { cn } from '@/lib/utils';
 import type { Scene } from '@/types/scene';
-
-const DEFAULT_HOUSE_ID = 'house-villa-001';
 
 const iconMap: Record<string, React.ReactNode> = {
   home: <Home className="w-7 h-7" />,
@@ -356,13 +356,16 @@ const LocationLinkSection = () => {
 };
 
 export default function ScenesPage() {
+  const navigate = useNavigate();
+  const currentHouseId = useAppStore((state) => state.currentHouseId);
   const { scenes, activeSceneId, fetchScenes, runScene, toggleSceneEnabled, deleteScene } = useSceneStore();
-  const [showEditor, setShowEditor] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchScenes(DEFAULT_HOUSE_ID);
-  }, []);
+    if (currentHouseId) {
+      fetchScenes(currentHouseId);
+    }
+  }, [currentHouseId, fetchScenes]);
 
   const stats = useMemo(() => ({
     total: scenes.length,
@@ -430,7 +433,7 @@ export default function ScenesPage() {
           variant="primary"
           size="lg"
           icon={<Plus className="w-5 h-5" />}
-          onClick={() => setShowEditor(true)}
+          onClick={() => navigate('/scenes/editor')}
         >
           创建场景
         </GradientButton>
@@ -443,7 +446,7 @@ export default function ScenesPage() {
             scene={scene}
             onRun={handleRunScene}
             onToggle={toggleSceneEnabled}
-            onEdit={() => setShowEditor(true)}
+            onEdit={() => navigate(`/scenes/editor?id=${scene.id}`)}
             onDelete={handleDelete}
             isRunning={activeSceneId === scene.id}
           />
@@ -451,7 +454,7 @@ export default function ScenesPage() {
 
         <GlassCard
           className="p-5 flex flex-col items-center justify-center min-h-[280px] border-dashed border-2 border-white/10 hover:border-primary-500/40 cursor-pointer transition-all group bg-white/[0.02]"
-          onClick={() => setShowEditor(true)}
+          onClick={() => navigate('/scenes/editor')}
         >
           <div className="w-16 h-16 rounded-2xl bg-white/5 group-hover:bg-primary-500/10 flex items-center justify-center text-gray-500 group-hover:text-primary-400 transition-all mb-4 group-hover:scale-110">
             <Plus className="w-8 h-8" />
@@ -485,36 +488,6 @@ export default function ScenesPage() {
               </GradientButton>
               <GradientButton variant="danger" className="flex-1" icon={<Trash2 className="w-4 h-4" />} onClick={confirmDelete}>
                 确认删除
-              </GradientButton>
-            </div>
-          </GlassCard>
-        </div>
-      )}
-
-      {showEditor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowEditor(false)} />
-          <GlassCard className="relative z-10 w-full max-w-md p-6 animate-scale-in">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-primary-400" />
-                创建场景
-              </h3>
-              <button
-                onClick={() => setShowEditor(false)}
-                className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-all"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="text-center py-12">
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary-500/30 to-secondary-500/30 flex items-center justify-center mx-auto mb-4 text-primary-300 shadow-glow-primary">
-                <Sparkles className="w-10 h-10" />
-              </div>
-              <h4 className="text-lg font-semibold text-white mb-2">场景编辑器</h4>
-              <p className="text-sm text-gray-400 mb-6">跳转至 /scenes/editor 进行场景配置</p>
-              <GradientButton variant="primary" icon={<Edit3 className="w-4 h-4" />} onClick={() => setShowEditor(false)}>
-                开始创建
               </GradientButton>
             </div>
           </GlassCard>

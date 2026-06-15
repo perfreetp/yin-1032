@@ -11,9 +11,9 @@ interface HouseStore {
 }
 
 export const useHouseStore = create<HouseStore>((set, get) => ({
-  houses: [],
-  rooms: [],
-  currentHouseId: '',
+  houses: houses,
+  rooms: rooms,
+  currentHouseId: 'house-villa-001',
   getHouses: async () => {
     await new Promise((resolve) => setTimeout(resolve, 200));
     set({ houses, rooms });

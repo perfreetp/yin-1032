@@ -30,13 +30,12 @@ import {
 import GlassCard from '@/components/common/GlassCard';
 import StatBlock from '@/components/common/StatBlock';
 import GradientButton from '@/components/common/GradientButton';
+import { useAppStore } from '@/store/useAppStore';
 import { useDeviceStore } from '@/store/useDeviceStore';
 import { useSceneStore } from '@/store/useSceneStore';
 import { cn } from '@/lib/utils';
 import type { Device, DeviceCategory } from '@/types/device';
 import type { Scene } from '@/types/scene';
-
-const DEFAULT_HOUSE_ID = 'house-villa-001';
 
 const MOCK_ROOMS = [
   { id: 'room-villa-living', name: '客厅', icon: 'sofa', type: 'living' },
@@ -210,13 +209,15 @@ const EnvCard = ({ icon, label, value, unit, color, status }: {
 
 export default function RoomsPage() {
   const [activeRoomId, setActiveRoomId] = useState(MOCK_ROOMS[0].id);
+  const currentHouseId = useAppStore((state) => state.currentHouseId);
   const { devices, fetchDevices, toggleDevice, batchToggle } = useDeviceStore();
   const { scenes, fetchScenes, runScene, activeSceneId } = useSceneStore();
 
   useEffect(() => {
-    fetchDevices(DEFAULT_HOUSE_ID);
-    fetchScenes(DEFAULT_HOUSE_ID);
-  }, []);
+    if (!currentHouseId) return;
+    fetchDevices(currentHouseId);
+    fetchScenes(currentHouseId);
+  }, [currentHouseId]);
 
   const activeRoom = MOCK_ROOMS.find((r) => r.id === activeRoomId);
   const roomDevices = useMemo(() => devices.filter((d) => d.roomId === activeRoomId), [devices, activeRoomId]);

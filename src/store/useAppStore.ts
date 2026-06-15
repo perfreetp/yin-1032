@@ -18,8 +18,8 @@ interface AppStore {
 }
 
 export const useAppStore = create<AppStore>((set) => ({
-  currentHouseId: 'house-1',
-  currentUserId: 'member-1',
+  currentHouseId: 'house-villa-001',
+  currentUserId: 'member-owner-001',
   theme: 'dark',
   sidebarCollapsed: false,
   loading: false,

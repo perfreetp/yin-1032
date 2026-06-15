@@ -38,11 +38,10 @@ import {
 } from 'lucide-react';
 import GlassCard from '@/components/common/GlassCard';
 import GradientButton from '@/components/common/GradientButton';
+import { useAppStore } from '@/store/useAppStore';
 import { useDeviceStore } from '@/store/useDeviceStore';
 import { cn } from '@/lib/utils';
 import type { Device, DeviceCategory } from '@/types/device';
-
-const DEFAULT_HOUSE_ID = 'house-villa-001';
 
 const CATEGORY_TABS: { key: DeviceCategory | 'all'; label: string; icon: React.ReactNode }[] = [
   { key: 'all', label: '全部', icon: <Layers className="w-4 h-4" /> },
@@ -760,6 +759,7 @@ const PairModal = ({ onClose }: { onClose: () => void }) => (
 );
 
 export default function DevicesPage() {
+  const currentHouseId = useAppStore((state) => state.currentHouseId);
   const {
     devices,
     selectedDeviceIds,
@@ -781,8 +781,9 @@ export default function DevicesPage() {
   const [roomDropdownOpen, setRoomDropdownOpen] = useState(false);
 
   useEffect(() => {
-    fetchDevices(DEFAULT_HOUSE_ID);
-  }, []);
+    if (!currentHouseId) return;
+    fetchDevices(currentHouseId);
+  }, [currentHouseId]);
 
   const filteredDevices = useMemo(() => {
     return devices.filter((d) => {

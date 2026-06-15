@@ -34,14 +34,12 @@ import {
 import dayjs from 'dayjs';
 import { useMemberStore } from '@/store/useMemberStore';
 import type { MemberRole, PermissionKey } from '@/mock/members';
-import { useHouseStore } from '@/store/useHouseStore';
+import { useAppStore } from '@/store/useAppStore';
 import { roleInfo, type GuestPass, type Member } from '@/mock/members';
 import GlassCard from '@/components/common/GlassCard';
 import StatBlock from '@/components/common/StatBlock';
 import GradientButton from '@/components/common/GradientButton';
 import { cn } from '@/lib/utils';
-
-const DEFAULT_HOUSE_ID = 'house-villa-001';
 
 const ROLE_ORDER: MemberRole[] = ['owner', 'admin', 'member', 'guest', 'property'];
 
@@ -68,9 +66,9 @@ const roleIcons: Record<MemberRole, typeof User> = {
 };
 
 const MembersPage = () => {
+  const currentHouseId = useAppStore((state) => state.currentHouseId);
   const { members, guestPasses, fetchMembers, inviteMember, updateMemberRole, createGuestPass, revokeGuestPass } =
     useMemberStore();
-  const { currentHouseId, getHouses } = useHouseStore();
 
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showGuestModal, setShowGuestModal] = useState(false);
@@ -97,21 +95,17 @@ const MembersPage = () => {
   });
 
   useEffect(() => {
-    const init = async () => {
-      const houses = await getHouses();
-      const houseId = currentHouseId || houses[0]?.id || DEFAULT_HOUSE_ID;
-      await fetchMembers(houseId);
-    };
-    init();
-  }, [fetchMembers, getHouses, currentHouseId]);
+    if (!currentHouseId) return;
+    fetchMembers(currentHouseId);
+  }, [currentHouseId, fetchMembers]);
 
   const houseMembers = useMemo(
-    () => members.filter((m) => m.houseId === (currentHouseId || DEFAULT_HOUSE_ID)),
+    () => members.filter((m) => m.houseId === currentHouseId),
     [members, currentHouseId]
   );
 
   const houseGuestPasses = useMemo(
-    () => guestPasses.filter((g) => g.houseId === (currentHouseId || DEFAULT_HOUSE_ID)),
+    () => guestPasses.filter((g) => g.houseId === currentHouseId),
     [guestPasses, currentHouseId]
   );
 
@@ -137,13 +131,13 @@ const MembersPage = () => {
   }, [houseMembers]);
 
   const handleInviteSubmit = useCallback(() => {
-    if (!inviteForm.name || !inviteForm.phone) return;
+    if (!inviteForm.name || !inviteForm.phone || !currentHouseId) return;
     inviteMember({
       name: inviteForm.name,
       avatar: '👤',
       phone: inviteForm.phone,
       role: inviteForm.role,
-      houseId: currentHouseId || DEFAULT_HOUSE_ID,
+      houseId: currentHouseId,
       permissions: inviteForm.permissions,
     });
     setShowInviteModal(false);
@@ -156,12 +150,12 @@ const MembersPage = () => {
   }, [inviteForm, inviteMember, currentHouseId]);
 
   const handleGuestSubmit = useCallback(() => {
-    if (!guestForm.guestName) return;
+    if (!guestForm.guestName || !currentHouseId) return;
     createGuestPass({
       guestName: guestForm.guestName,
       guestPhone: guestForm.guestPhone || undefined,
       creatorId: 'member-owner-001',
-      houseId: currentHouseId || DEFAULT_HOUSE_ID,
+      houseId: currentHouseId,
       validFrom: new Date(guestForm.validFrom).getTime(),
       validTo: new Date(guestForm.validTo).getTime() + 86399999,
       permissions: guestForm.permissions,

@@ -38,6 +38,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip } from '
 import GlassCard from '@/components/common/GlassCard';
 import StatBlock from '@/components/common/StatBlock';
 import GradientButton from '@/components/common/GradientButton';
+import { useAppStore } from '@/store/useAppStore';
 import { useHouseStore } from '@/store/useHouseStore';
 import { useDeviceStore } from '@/store/useDeviceStore';
 import { useSceneStore } from '@/store/useSceneStore';
@@ -47,8 +48,6 @@ import { cn } from '@/lib/utils';
 import type { Device, DeviceCategory } from '@/types/device';
 import type { Scene } from '@/types/scene';
 import type { Alert, AlertLevel } from '@/types/alert';
-
-const DEFAULT_HOUSE_ID = 'house-villa-001';
 
 const categoryIcons: Record<DeviceCategory, React.ReactNode> = {
   light: <Lightbulb className="w-5 h-5" />,
@@ -354,19 +353,21 @@ const AlertBanner = ({ alert, onHandle }: { alert: Alert; onHandle: (id: string)
 };
 
 export default function DashboardPage() {
-  const { houses, currentHouseId, getHouses, getRoomsByHouse } = useHouseStore();
+  const currentHouseId = useAppStore((state) => state.currentHouseId);
+  const { houses, getHouses, getRoomsByHouse } = useHouseStore();
   const { devices, fetchDevices, toggleDevice } = useDeviceStore();
   const { scenes, activeSceneId, fetchScenes, runScene, toggleSceneEnabled } = useSceneStore();
   const { summary, fetchEnergy } = useEnergyStore();
   const { alerts, unreadCount, fetchAlerts, markRead } = useAlertStore();
 
   useEffect(() => {
+    if (!currentHouseId) return;
     getHouses();
-    fetchDevices(DEFAULT_HOUSE_ID);
-    fetchScenes(DEFAULT_HOUSE_ID);
-    fetchEnergy();
-    fetchAlerts(DEFAULT_HOUSE_ID);
-  }, []);
+    fetchDevices(currentHouseId);
+    fetchScenes(currentHouseId);
+    fetchEnergy(currentHouseId);
+    fetchAlerts(currentHouseId);
+  }, [currentHouseId]);
 
   const house = houses.find((h) => h.id === currentHouseId) || houses[0];
   const rooms = currentHouseId ? getRoomsByHouse(currentHouseId) : [];

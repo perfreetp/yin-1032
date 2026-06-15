@@ -37,10 +37,9 @@ import GradientButton from '@/components/common/GradientButton';
 import SceneTriggerEditor from '@/components/scenes/SceneTriggerEditor';
 import SceneActionEditor from '@/components/scenes/SceneActionEditor';
 import { useSceneStore } from '@/store/useSceneStore';
+import { useAppStore } from '@/store/useAppStore';
 import { cn } from '@/lib/utils';
 import type { Scene } from '@/types/scene';
-
-const DEFAULT_HOUSE_ID = 'house-villa-001';
 
 const iconOptions: { key: string; label: string; Icon: LucideIcon }[] = [
   { key: 'home', label: '家', Icon: Home },
@@ -139,6 +138,7 @@ export default function SceneEditorPage() {
   const [searchParams] = useSearchParams();
   const sceneId = searchParams.get('id');
   const isEditMode = !!sceneId;
+  const currentHouseId = useAppStore((state) => state.currentHouseId);
 
   const {
     scenes,
@@ -159,8 +159,10 @@ export default function SceneEditorPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    fetchScenes(DEFAULT_HOUSE_ID);
-  }, [fetchScenes]);
+    if (currentHouseId) {
+      fetchScenes(currentHouseId);
+    }
+  }, [currentHouseId, fetchScenes]);
 
   useEffect(() => {
     if (isEditMode && scenes.length > 0) {
@@ -172,13 +174,13 @@ export default function SceneEditorPage() {
         setEnabled(existingScene.enabled);
         setEditingScene(existingScene);
       }
-    } else if (!isEditMode && !editingScene) {
+    } else if (!isEditMode && !editingScene && currentHouseId) {
       const newScene: Scene = {
         id: `scene-temp-${Date.now()}`,
         name: '',
         icon: 'sparkles',
         color: '#3B82F6',
-        houseId: DEFAULT_HOUSE_ID,
+        houseId: currentHouseId,
         enabled: true,
         triggers: [],
         actions: [],
@@ -190,7 +192,7 @@ export default function SceneEditorPage() {
     return () => {
       setEditingScene(null);
     };
-  }, [isEditMode, sceneId, scenes, setEditingScene, editingScene]);
+  }, [isEditMode, sceneId, scenes, setEditingScene, editingScene, currentHouseId]);
 
   const currentScene = useMemo(() => {
     if (!editingScene) return null;
@@ -225,7 +227,7 @@ export default function SceneEditorPage() {
   };
 
   const handleSave = async () => {
-    if (!validateForm() || !currentScene) return;
+    if (!validateForm() || !currentScene || !editingScene) return;
 
     setIsSaving(true);
 
@@ -236,18 +238,19 @@ export default function SceneEditorPage() {
           icon: selectedIcon,
           color: selectedColor,
           enabled,
+          triggers: editingScene.triggers,
+          actions: editingScene.actions,
         });
       } else {
-        const created = createScene({
+        createScene({
           name: sceneName.trim(),
           icon: selectedIcon,
           color: selectedColor,
-          houseId: DEFAULT_HOUSE_ID,
+          houseId: currentHouseId,
           enabled,
-          triggers: currentScene.triggers,
-          actions: currentScene.actions,
+          triggers: editingScene.triggers,
+          actions: editingScene.actions,
         });
-        setEditingScene({ ...created, ...currentScene, id: created.id });
       }
 
       await new Promise((resolve) => setTimeout(resolve, 500));

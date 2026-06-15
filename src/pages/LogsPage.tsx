@@ -26,14 +26,12 @@ import dayjs from 'dayjs';
 import { useLogStore } from '@/store/useLogStore';
 import type { LogType } from '@/mock/logs';
 import { useMemberStore } from '@/store/useMemberStore';
-import { useHouseStore } from '@/store/useHouseStore';
+import { useAppStore } from '@/store/useAppStore';
 import { type LogEntry } from '@/mock/logs';
 import GlassCard from '@/components/common/GlassCard';
 import StatBlock from '@/components/common/StatBlock';
 import GradientButton from '@/components/common/GradientButton';
 import { cn } from '@/lib/utils';
-
-const DEFAULT_HOUSE_ID = 'house-villa-001';
 
 const typeConfig: Record<
   LogType | 'all',
@@ -99,7 +97,7 @@ const timeRanges = [
 const LogsPage = () => {
   const { logs, filterType, filterUserId, setFilters, fetchLogs } = useLogStore();
   const { members, fetchMembers } = useMemberStore();
-  const { currentHouseId, getHouses } = useHouseStore();
+  const currentHouseId = useAppStore((state) => state.currentHouseId);
 
   const [searchText, setSearchText] = useState('');
   const [timeRange, setTimeRange] = useState<string>('all');
@@ -108,21 +106,18 @@ const LogsPage = () => {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const init = async () => {
-      const houses = await getHouses();
-      const houseId = currentHouseId || houses[0]?.id || DEFAULT_HOUSE_ID;
-      await Promise.all([fetchLogs(houseId), fetchMembers(houseId)]);
-    };
-    init();
-  }, [fetchLogs, fetchMembers, getHouses, currentHouseId]);
+    if (!currentHouseId) return;
+    fetchLogs(currentHouseId);
+    fetchMembers(currentHouseId);
+  }, [currentHouseId, fetchLogs, fetchMembers]);
 
   const houseLogs = useMemo(
-    () => logs.filter((l) => l.houseId === (currentHouseId || DEFAULT_HOUSE_ID)),
+    () => logs.filter((l) => l.houseId === currentHouseId),
     [logs, currentHouseId]
   );
 
   const houseMembers = useMemo(
-    () => members.filter((m) => m.houseId === (currentHouseId || DEFAULT_HOUSE_ID)),
+    () => members.filter((m) => m.houseId === currentHouseId),
     [members, currentHouseId]
   );
 

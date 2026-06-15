@@ -27,7 +27,7 @@ import {
 } from 'recharts';
 import dayjs from 'dayjs';
 import { useEnergyStore } from '@/store/useEnergyStore';
-import { useHouseStore } from '@/store/useHouseStore';
+import { useAppStore } from '@/store/useAppStore';
 import GlassCard from '@/components/common/GlassCard';
 import StatBlock from '@/components/common/StatBlock';
 import GradientButton from '@/components/common/GradientButton';
@@ -35,8 +35,6 @@ import EnergyGauge from '@/components/energy/EnergyGauge';
 import TrendChart from '@/components/energy/TrendChart';
 import RankBar from '@/components/energy/RankBar';
 import { cn } from '@/lib/utils';
-
-const DEFAULT_HOUSE_ID = 'house-villa-001';
 
 const savingTips = [
   {
@@ -92,17 +90,13 @@ const categoryIcons: Record<string, typeof Zap> = {
 };
 
 const EnergyPage = () => {
+  const currentHouseId = useAppStore((state) => state.currentHouseId);
   const { summary, categoryStats, roomStats, fetchEnergy } = useEnergyStore();
-  const { currentHouseId, getHouses } = useHouseStore();
 
   useEffect(() => {
-    const init = async () => {
-      const houses = await getHouses();
-      const houseId = currentHouseId || houses[0]?.id || DEFAULT_HOUSE_ID;
-      await fetchEnergy(houseId);
-    };
-    init();
-  }, [fetchEnergy, getHouses, currentHouseId]);
+    if (!currentHouseId) return;
+    fetchEnergy(currentHouseId);
+  }, [currentHouseId, fetchEnergy]);
 
   const totalSaving = useMemo(() => {
     return savingTips.reduce((acc, tip) => {

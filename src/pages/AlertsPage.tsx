@@ -18,7 +18,7 @@ import {
 import dayjs from 'dayjs';
 import { useAlertStore } from '@/store/useAlertStore';
 import type { AlertLevel, AlertStatus } from '@/types/alert';
-import { useHouseStore } from '@/store/useHouseStore';
+import { useAppStore } from '@/store/useAppStore';
 import GlassCard from '@/components/common/GlassCard';
 import StatBlock from '@/components/common/StatBlock';
 import GradientButton from '@/components/common/GradientButton';
@@ -26,8 +26,6 @@ import AlertCard from '@/components/alerts/AlertCard';
 import AlertBanner from '@/components/alerts/AlertBanner';
 import { cn } from '@/lib/utils';
 import type { Alert } from '@/types/alert';
-
-const DEFAULT_HOUSE_ID = 'house-villa-001';
 
 const PAGE_SIZE = 6;
 
@@ -55,6 +53,7 @@ const timeRanges = [
 ];
 
 const AlertsPage = () => {
+  const currentHouseId = useAppStore((state) => state.currentHouseId);
   const {
     alerts,
     unreadCount,
@@ -65,7 +64,6 @@ const AlertsPage = () => {
     markResolved,
     ignoreAlert,
   } = useAlertStore();
-  const { currentHouseId, getHouses } = useHouseStore();
 
   const [searchText, setSearchText] = useState('');
   const [timeRange, setTimeRange] = useState<string>('all');
@@ -74,13 +72,9 @@ const AlertsPage = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
 
   useEffect(() => {
-    const init = async () => {
-      const houses = await getHouses();
-      const houseId = currentHouseId || houses[0]?.id || DEFAULT_HOUSE_ID;
-      await fetchAlerts(houseId);
-    };
-    init();
-  }, [fetchAlerts, getHouses, currentHouseId]);
+    if (!currentHouseId) return;
+    fetchAlerts(currentHouseId);
+  }, [currentHouseId, fetchAlerts]);
 
   const stats = useMemo(() => {
     const pending = alerts.filter((a) => a.status === 'pending').length;

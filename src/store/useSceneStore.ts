@@ -188,8 +188,8 @@ export const useSceneStore = create<SceneStore>((set) => ({
   },
   reorderActions: (sceneId, actionIds) => {
     set((state) => {
-      const scene = state.scenes.find((s) => s.id === sceneId);
-      if (!scene) return state;
+      const scene = state.scenes.find((s) => s.id === sceneId) || state.editingScene;
+      if (!scene || scene.id !== sceneId) return state;
       const orderedActions = actionIds
         .map((id) => scene.actions.find((a) => a.id === id))
         .filter(Boolean)

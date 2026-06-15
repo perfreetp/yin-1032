@@ -20,7 +20,8 @@ interface EnergyStore {
   rankList: EnergyRankItem[];
   summary: typeof energySummary;
   timeRange: TimeRange;
-  fetchEnergy: (houseId?: string) => Promise<void>;
+  houseId: string;
+  fetchEnergy: (houseId: string) => Promise<void>;
   setTimeRange: (range: TimeRange) => void;
 }
 
@@ -60,10 +61,12 @@ export const useEnergyStore = create<EnergyStore>((set, get) => ({
   rankList: [],
   summary: energySummary,
   timeRange: 'day',
-  fetchEnergy: async () => {
+  houseId: '',
+  fetchEnergy: async (houseId) => {
     await new Promise((resolve) => setTimeout(resolve, 400));
     const { timeRange } = get();
     set({
+      houseId,
       trendData: getTrendByRange(timeRange),
       categoryStats: energyByCategory,
       roomStats: energyByRoom,
