@@ -13,7 +13,6 @@ import {
   Layers,
   Power,
   PowerOff,
-  Settings,
   X,
   CheckSquare,
   Square,
@@ -21,20 +20,16 @@ import {
   Wifi,
   WifiOff,
   AlertTriangle,
-  Sun,
-  Moon,
-  ThermometerSun,
-  Wind,
-  Battery,
-  Clock,
-  User,
-  Play,
   RefreshCw,
   SlidersHorizontal,
   Check,
   Home,
   DoorOpen,
   ScanEye,
+  MapPin,
+  Hash,
+  Cpu,
+  Calendar,
 } from 'lucide-react';
 import GlassCard from '@/components/common/GlassCard';
 import GradientButton from '@/components/common/GradientButton';
@@ -43,6 +38,13 @@ import { useDeviceStore } from '@/store/useDeviceStore';
 import { useHouseStore } from '@/store/useHouseStore';
 import { cn } from '@/lib/utils';
 import type { Device, DeviceCategory } from '@/types/device';
+import LightControl from '@/components/devices/LightControl';
+import ACControl from '@/components/devices/ACControl';
+import CurtainControl from '@/components/devices/CurtainControl';
+import LockStatus from '@/components/devices/LockStatus';
+import CameraPreview from '@/components/devices/CameraPreview';
+import SensorReadings from '@/components/devices/SensorReadings';
+import SimpleSwitchControl from '@/components/devices/SimpleSwitchControl';
 
 const CATEGORY_TABS: { key: DeviceCategory | 'all'; label: string; icon: React.ReactNode }[] = [
   { key: 'all', label: '全部', icon: <Layers className="w-4 h-4" /> },
@@ -175,425 +177,53 @@ const DeviceCard = ({
   );
 };
 
-const LightControl = ({ device, onUpdate }: { device: Device; onUpdate: (patch: Partial<Device['state']>) => void }) => {
-  const state = device.state as { power: boolean; brightness: number; colorTemp: number; color?: string };
-  const [brightness, setBrightness] = useState(state.brightness);
-  const [colorTemp, setColorTemp] = useState(state.colorTemp);
-
-  const handleBrightnessChange = (val: number) => {
-    setBrightness(val);
-    onUpdate({ brightness: val });
-  };
-
-  const handleColorTempChange = (val: number) => {
-    setColorTemp(val);
-    onUpdate({ colorTemp: val });
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-3">
-        <button
-          onClick={() => onUpdate({ power: true, brightness: 80, colorTemp: 4000 })}
-          className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
-        >
-          <Sun className="w-6 h-6 mx-auto text-amber-400 mb-2" />
-          <p className="text-xs text-white font-medium">日常</p>
-        </button>
-        <button
-          onClick={() => onUpdate({ power: true, brightness: 30, colorTemp: 2700 })}
-          className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
-        >
-          <Moon className="w-6 h-6 mx-auto text-indigo-400 mb-2" />
-          <p className="text-xs text-white font-medium">夜灯</p>
-        </button>
-        <button
-          onClick={() => onUpdate({ power: true, brightness: 100, colorTemp: 5500 })}
-          className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
-        >
-          <Lightbulb className="w-6 h-6 mx-auto text-primary-400 mb-2" />
-          <p className="text-xs text-white font-medium">高亮</p>
-        </button>
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <label className="text-sm font-medium text-white flex items-center gap-2">
-            <Sun className="w-4 h-4 text-amber-400" />
-            亮度
-          </label>
-          <span className="text-sm text-primary-400 font-semibold">{brightness}%</span>
-        </div>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          value={brightness}
-          onChange={(e) => handleBrightnessChange(Number(e.target.value))}
-          className="w-full h-2 rounded-full appearance-none cursor-pointer bg-white/10 accent-primary-500"
-        />
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <label className="text-sm font-medium text-white flex items-center gap-2">
-            <ThermometerSun className="w-4 h-4 text-orange-400" />
-            色温
-          </label>
-          <span className="text-sm text-primary-400 font-semibold">{colorTemp}K</span>
-        </div>
-        <input
-          type="range"
-          min={2700}
-          max={6500}
-          step={100}
-          value={colorTemp}
-          onChange={(e) => handleColorTempChange(Number(e.target.value))}
-          className="w-full h-2 rounded-full appearance-none cursor-pointer"
-          style={{
-            background: 'linear-gradient(to right, #FFA500, #FFFFFF, #87CEEB)',
-          }}
-        />
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>暖光</span>
-          <span>冷光</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ACControl = ({ device, onUpdate }: { device: Device; onUpdate: (patch: Partial<Device['state']>) => void }) => {
-  const state = device.state as { power: boolean; mode: string; temperature: number; fanSpeed: number | string; swing: boolean };
-  const [temperature, setTemperature] = useState(state.temperature);
-
-  const modes = [
-    { key: 'cool', label: '制冷', icon: <Snowflake className="w-4 h-4" /> },
-    { key: 'heat', label: '制热', icon: <ThermometerSun className="w-4 h-4" /> },
-    { key: 'auto', label: '自动', icon: <RefreshCw className="w-4 h-4" /> },
-    { key: 'dry', label: '除湿', icon: <Droplets className="w-4 h-4" /> },
-    { key: 'fan', label: '送风', icon: <Wind className="w-4 h-4" /> },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs text-gray-400 mb-1">设定温度</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-5xl font-bold bg-gradient-to-r from-primary-400 to-emerald-400 bg-clip-text text-transparent">
-              {temperature}
-            </span>
-            <span className="text-2xl text-gray-400">°C</span>
-          </div>
-        </div>
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={() => {
-              const t = Math.min(temperature + 1, 30);
-              setTemperature(t);
-              onUpdate({ temperature: t });
-            }}
-            className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white transition-all"
-          >
-            +
-          </button>
-          <button
-            onClick={() => {
-              const t = Math.max(temperature - 1, 16);
-              setTemperature(t);
-              onUpdate({ temperature: t });
-            }}
-            className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white transition-all"
-          >
-            -
-          </button>
-        </div>
-      </div>
-
-      <div>
-        <p className="text-sm font-medium text-white mb-3">运行模式</p>
-        <div className="grid grid-cols-5 gap-2">
-          {modes.map((m) => (
-            <button
-              key={m.key}
-              onClick={() => onUpdate({ mode: m.key as never })}
-              className={cn(
-                'p-3 rounded-xl flex flex-col items-center gap-1.5 transition-all border',
-                state.mode === m.key
-                  ? 'bg-primary-500/20 border-primary-500/50 text-primary-400'
-                  : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
-              )}
-            >
-              {m.icon}
-              <span className="text-[10px] font-medium">{m.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <p className="text-sm font-medium text-white mb-3">风速</p>
-        <div className="grid grid-cols-5 gap-2">
-          {['auto', 1, 2, 3, 4].map((speed) => (
-            <button
-              key={String(speed)}
-              onClick={() => onUpdate({ fanSpeed: speed as never })}
-              className={cn(
-                'py-2 rounded-xl text-xs font-medium transition-all border',
-                state.fanSpeed === speed
-                  ? 'bg-primary-500/20 border-primary-500/50 text-primary-400'
-                  : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
-              )}
-            >
-              {speed === 'auto' ? 'AUTO' : `${speed}档`}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
-        <div className="flex items-center gap-3">
-          <Wind className="w-5 h-5 text-primary-400" />
-          <span className="text-sm font-medium text-white">扫风</span>
-        </div>
-        <button
-          onClick={() => onUpdate({ swing: !state.swing })}
-          className={cn(
-            'relative w-11 h-6 rounded-full transition-all duration-300',
-            state.swing ? 'bg-gradient-to-r from-primary-500 to-secondary-500' : 'bg-white/10'
-          )}
-        >
-          <span
-            className={cn(
-              'absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-lg transition-all duration-300',
-              state.swing ? 'left-[22px]' : 'left-0.5'
-            )}
-          />
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const CurtainControl = ({ device, onUpdate }: { device: Device; onUpdate: (patch: Partial<Device['state']>) => void }) => {
-  const state = device.state as { position: number };
-  const [position, setPosition] = useState(state.position);
-
-  const handleChange = (val: number) => {
-    setPosition(val);
-    onUpdate({ position: val });
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-center py-6">
-        <div className="relative w-48 h-48">
-          <div className="absolute inset-0 rounded-full border-8 border-white/5" />
-          <div
-            className="absolute inset-0 rounded-full border-8 border-transparent"
-            style={{
-              background: `conic-gradient(from 225deg, #1677ff 0deg, #633bff ${(position / 100) * 270}deg, transparent ${(position / 100) * 270}deg)`,
-              WebkitMask: 'radial-gradient(transparent 60px, black 61px)',
-              mask: 'radial-gradient(transparent 60px, black 61px)',
-            }}
-          />
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <PanelLeftClose className="w-10 h-10 text-primary-400 mb-2" />
-            <span className="text-4xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
-              {position}%
-            </span>
-            <span className="text-xs text-gray-400 mt-1">
-              {position === 0 ? '全关' : position === 100 ? '全开' : '半开'}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          value={position}
-          onChange={(e) => handleChange(Number(e.target.value))}
-          className="w-full h-2 rounded-full appearance-none cursor-pointer bg-white/10 accent-primary-500"
-        />
-      </div>
-
-      <div className="grid grid-cols-4 gap-2">
-        {[0, 25, 50, 75, 100].map((p) => (
-          <button
-            key={p}
-            onClick={() => handleChange(p)}
-            className={cn(
-              'py-2 rounded-xl text-xs font-medium transition-all border col-span-1',
-              position === p
-                ? 'bg-primary-500/20 border-primary-500/50 text-primary-400'
-                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
-            )}
-          >
-            {p === 0 ? '全关' : p === 100 ? '全开' : `${p}%`}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const LockStatus = ({ device }: { device: Device }) => {
-  const state = device.state as { state: string; battery: number; lastUnlockUser?: string; lastUnlockTime?: number };
-  const unlockHistory = [
-    { user: '张明轩', method: '指纹', time: '2小时前' },
-    { user: '李雨婷', method: '密码', time: '5小时前' },
-    { user: '系统', method: '临时密码', time: '昨天 18:30' },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-center py-4">
-        <div
-          className={cn(
-            'w-28 h-28 rounded-2xl flex items-center justify-center shadow-glow-primary',
-            state.state === 'locked'
-              ? 'bg-gradient-to-br from-emerald-500/30 to-primary-500/30'
-              : state.state === 'alarm'
-                ? 'bg-gradient-to-br from-rose-500/30 to-amber-500/30 animate-pulse'
-                : 'bg-gradient-to-br from-amber-500/30 to-rose-500/30'
-          )}
-        >
-          {state.state === 'locked' ? (
-            <Lock className="w-12 h-12 text-emerald-400" />
-          ) : state.state === 'alarm' ? (
-            <AlertTriangle className="w-12 h-12 text-rose-400" />
-          ) : (
-            <DoorOpen className="w-12 h-12 text-amber-400" />
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-3 text-center">
-        <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-          <p className="text-xs text-gray-400 mb-1">状态</p>
-          <p className={cn(
-            'text-sm font-semibold',
-            state.state === 'locked' ? 'text-emerald-400' : state.state === 'alarm' ? 'text-rose-400' : 'text-amber-400'
-          )}>
-            {state.state === 'locked' ? '已锁定' : state.state === 'alarm' ? '异常告警' : '已解锁'}
-          </p>
-        </div>
-        <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-          <p className="text-xs text-gray-400 mb-1">电量</p>
-          <p className="text-sm font-semibold text-primary-400 flex items-center justify-center gap-1">
-            <Battery className="w-3.5 h-3.5" />
-            {state.battery}%
-          </p>
-        </div>
-        <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-          <p className="text-xs text-gray-400 mb-1">最近</p>
-          <p className="text-sm font-semibold text-white">{state.lastUnlockTime ? '指纹' : '-'}</p>
-        </div>
-      </div>
-
-      <div>
-        <p className="text-sm font-medium text-white mb-3 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-primary-400" />
-          开锁记录
-        </p>
-        <div className="space-y-2">
-          {unlockHistory.map((record, i) => (
-            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary-500/20 flex items-center justify-center">
-                  <User className="w-4 h-4 text-primary-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-white font-medium">{record.user}</p>
-                  <p className="text-xs text-gray-400">{record.method}开锁</p>
-                </div>
-              </div>
-              <span className="text-xs text-gray-500">{record.time}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const CameraPreview = ({ device }: { device: Device }) => (
-  <div className="space-y-6">
-    <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 border border-white/10">
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center">
-          <Camera className="w-16 h-16 text-gray-600 mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-500">实时画面加载中...</p>
-        </div>
-      </div>
-      <div className="absolute top-4 left-4 flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-        <span className="text-xs font-medium text-white">REC</span>
-        <span className="text-xs text-white/70">HD 1080P</span>
-      </div>
-      <div className="absolute top-4 right-4 px-3 py-1 rounded-lg bg-black/40 backdrop-blur-sm">
-        <span className="text-xs text-white font-mono">
-          {new Date().toLocaleTimeString('zh-CN')}
-        </span>
-      </div>
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
-        <button className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all">
-          <Camera className="w-5 h-5" />
-        </button>
-        <button className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all">
-          <Play className="w-5 h-5" />
-        </button>
-        <button className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all">
-          <Settings className="w-5 h-5" />
-        </button>
-      </div>
-    </div>
-
-    <div className="grid grid-cols-2 gap-3">
-      <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-        <p className="text-xs text-gray-400 mb-1">分辨率</p>
-        <p className="text-sm font-medium text-white">1920 × 1080</p>
-      </div>
-      <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-        <p className="text-xs text-gray-400 mb-1">夜视模式</p>
-        <p className="text-sm font-medium text-emerald-400">红外夜视</p>
-      </div>
-    </div>
-  </div>
-);
-
 const DeviceDetailDrawer = ({
   device,
   onClose,
-  onUpdate,
-  onToggle,
 }: {
   device: Device | null;
   onClose: () => void;
-  onUpdate: (patch: Partial<Device['state']>) => void;
-  onToggle: () => void;
 }) => {
-  if (!device) return null;
+  const { houses, rooms } = useHouseStore();
+  const devices = useDeviceStore((state) => state.devices);
 
-  const hasPower = 'power' in device.state;
-  const isOn = hasPower && (device.state as { power: boolean }).power;
+  const liveDevice = useMemo(() => {
+    if (!device) return null;
+    return devices.find((d) => d.id === device.id) || device;
+  }, [device, devices]);
+
+  if (!liveDevice) return null;
+
+  const house = houses.find((h) => h.id === liveDevice.houseId);
+  const room = rooms.find((r) => r.id === liveDevice.roomId);
+
+  const hasPower = 'power' in liveDevice.state;
+  const isOn = hasPower && (liveDevice.state as { power: boolean }).power;
+
+  const statusConfig = {
+    online: { color: 'bg-emerald-500', label: '在线', icon: <Wifi className="w-3 h-3" /> },
+    offline: { color: 'bg-gray-500', label: '离线', icon: <WifiOff className="w-3 h-3" /> },
+    fault: { color: 'bg-rose-500', label: '故障', icon: <AlertTriangle className="w-3 h-3" /> },
+  };
+  const status = statusConfig[liveDevice.status];
 
   const renderControl = () => {
-    switch (device.category) {
+    switch (liveDevice.category) {
       case 'light':
-        return <LightControl device={device} onUpdate={onUpdate} />;
+        return <LightControl device={liveDevice} />;
       case 'ac':
-        return <ACControl device={device} onUpdate={onUpdate} />;
+        return <ACControl device={liveDevice} />;
       case 'curtain':
-        return <CurtainControl device={device} onUpdate={onUpdate} />;
+        return <CurtainControl device={liveDevice} />;
       case 'lock':
-        return <LockStatus device={device} />;
+        return <LockStatus device={liveDevice} />;
       case 'camera':
-        return <CameraPreview device={device} />;
+        return <CameraPreview device={liveDevice} />;
+      case 'sensor':
+        return <SensorReadings device={liveDevice} />;
+      case 'tv':
+      case 'speaker':
+        return <SimpleSwitchControl device={liveDevice} />;
       default:
         return (
           <div className="text-center py-12 text-gray-400">
@@ -621,11 +251,16 @@ const DeviceDetailDrawer = ({
                   : 'bg-white/5 text-gray-400'
               )}
             >
-              {categoryIcons[device.category]}
+              {categoryIcons[liveDevice.category]}
             </div>
             <div>
-              <h3 className="font-semibold text-white">{device.name}</h3>
-              <p className="text-xs text-gray-400 capitalize">{device.category} · {device.status}</p>
+              <h3 className="font-semibold text-white">{liveDevice.name}</h3>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className={cn('w-2 h-2 rounded-full', status.color)} />
+                <p className="text-xs text-gray-400 capitalize">
+                  {liveDevice.category} · {status.label}
+                </p>
+              </div>
             </div>
           </div>
           <button
@@ -636,42 +271,80 @@ const DeviceDetailDrawer = ({
           </button>
         </div>
 
-        {hasPower && (
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 shrink-0">
-            <span className="text-sm text-white font-medium">设备开关</span>
-            <button
-              onClick={onToggle}
-              className={cn(
-                'relative w-14 h-7 rounded-full transition-all duration-300',
-                isOn ? 'bg-gradient-to-r from-primary-500 to-secondary-500' : 'bg-white/10'
-              )}
-            >
-              <span
-                className={cn(
-                  'absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-lg transition-all duration-300',
-                  isOn ? 'left-[29px]' : 'left-0.5'
-                )}
-              />
-            </button>
-          </div>
-        )}
-
-        <div className="flex-1 overflow-y-auto p-5">
-          {renderControl()}
-        </div>
-
-        <div className="p-5 border-t border-white/5 shrink-0">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-              <p className="text-xs text-gray-400">固件版本</p>
-              <p className="text-sm text-white font-medium">{device.firmware || '-'}</p>
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-5 space-y-5">
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+              <div className="flex items-center gap-2 mb-3">
+                <MapPin className="w-4 h-4 text-primary-400" />
+                <span className="text-sm font-medium text-white">位置信息</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg bg-white/5">
+                  <p className="text-xs text-gray-400 mb-1">房屋</p>
+                  <p className="text-sm text-white font-medium flex items-center gap-1.5">
+                    <Home className="w-3.5 h-3.5 text-primary-400" />
+                    {house?.name || '未知'}
+                  </p>
+                </div>
+                <div className="p-3 rounded-lg bg-white/5">
+                  <p className="text-xs text-gray-400 mb-1">房间</p>
+                  <p className="text-sm text-white font-medium flex items-center gap-1.5">
+                    <DoorOpen className="w-3.5 h-3.5 text-secondary-400" />
+                    {room?.name || '未知'}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-              <p className="text-xs text-gray-400">配对时间</p>
-              <p className="text-sm text-white font-medium">
-                {new Date(device.pairedAt).toLocaleDateString('zh-CN')}
-              </p>
+
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+              <div className="flex items-center gap-2 mb-3">
+                <Cpu className="w-4 h-4 text-primary-400" />
+                <span className="text-sm font-medium text-white">设备信息</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg bg-white/5">
+                  <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                    <Hash className="w-3 h-3" />
+                    设备ID
+                  </p>
+                  <p className="text-xs text-white/80 font-mono truncate" title={liveDevice.id}>
+                    {liveDevice.id}
+                  </p>
+                </div>
+                <div className="p-3 rounded-lg bg-white/5">
+                  <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                    <Wifi className="w-3 h-3" />
+                    状态
+                  </p>
+                  <p className={cn(
+                    'text-sm font-medium flex items-center gap-1.5',
+                    liveDevice.status === 'online' ? 'text-emerald-400' :
+                    liveDevice.status === 'fault' ? 'text-rose-400' : 'text-gray-400'
+                  )}>
+                    {status.icon}
+                    {status.label}
+                  </p>
+                </div>
+                <div className="p-3 rounded-lg bg-white/5">
+                  <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                    <Cpu className="w-3 h-3" />
+                    固件版本
+                  </p>
+                  <p className="text-sm text-white font-medium">{liveDevice.firmware || '-'}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-white/5">
+                  <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    配对时间
+                  </p>
+                  <p className="text-sm text-white font-medium">
+                    {new Date(liveDevice.pairedAt).toLocaleDateString('zh-CN')}
+                  </p>
+                </div>
+              </div>
             </div>
+
+            {renderControl()}
           </div>
         </div>
       </div>
@@ -759,7 +432,6 @@ export default function DevicesPage() {
     searchQuery,
     fetchDevices,
     toggleDevice,
-    updateDeviceState,
     batchToggle,
     toggleSelect,
     clearSelection,
@@ -996,54 +668,9 @@ export default function DevicesPage() {
       <DeviceDetailDrawer
         device={detailDevice}
         onClose={() => setDetailDevice(null)}
-        onUpdate={(patch) => detailDevice && updateDeviceState(detailDevice.id, patch)}
-        onToggle={() => detailDevice && toggleDevice(detailDevice.id)}
       />
 
       {showPairModal && <PairModal onClose={() => setShowPairModal(false)} />}
     </div>
-  );
-}
-
-function Droplets(props: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
-    </svg>
-  );
-}
-
-function Snowflake(props: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <line x1="2" y1="12" x2="22" y2="12" />
-      <line x1="12" y1="2" x2="12" y2="22" />
-      <path d="m20 16-4-4 4-4" />
-      <path d="m4 8 4 4-4 4" />
-      <path d="m16 4-4 4-4-4" />
-      <path d="m8 20 4-4 4 4" />
-    </svg>
   );
 }

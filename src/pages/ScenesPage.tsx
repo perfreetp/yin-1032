@@ -27,12 +27,16 @@ import {
   X,
   ChevronRight,
   TreePalm,
+  Layers,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import GlassCard from '@/components/common/GlassCard';
 import StatBlock from '@/components/common/StatBlock';
 import GradientButton from '@/components/common/GradientButton';
 import { useSceneStore } from '@/store/useSceneStore';
 import { useAppStore } from '@/store/useAppStore';
+import { useDeviceStore } from '@/store/useDeviceStore';
 import { cn } from '@/lib/utils';
 import type { Scene } from '@/types/scene';
 
@@ -82,6 +86,36 @@ const SceneCard = ({
   onDelete: (id: string) => void;
   isRunning: boolean;
 }) => {
+  const { devices } = useDeviceStore();
+  const [showDevices, setShowDevices] = useState(false);
+
+  const deviceStats = useMemo(() => {
+    const deviceIds = new Set<string>();
+    const roomIds = new Set<string>();
+    const affectedDevices: Array<{ id: string; name: string; roomId: string }> = [];
+
+    scene.actions.forEach((action) => {
+      if (action.target.deviceId) {
+        const device = devices.find((d) => d.id === action.target.deviceId);
+        if (device) {
+          deviceIds.add(device.id);
+          roomIds.add(device.roomId);
+          affectedDevices.push({
+            id: device.id,
+            name: device.name,
+            roomId: device.roomId,
+          });
+        }
+      }
+    });
+
+    return {
+      deviceCount: deviceIds.size,
+      roomCount: roomIds.size,
+      affectedDevices,
+    };
+  }, [scene.actions, devices]);
+
   return (
     <GlassCard
       className={cn(
@@ -142,9 +176,48 @@ const SceneCard = ({
         <h3 className="text-xl font-bold text-white mb-1 group-hover:text-primary-300 transition-colors">
           {scene.name}
         </h3>
-        <p className="text-sm text-gray-400 mb-4">
-          {scene.actions.length} 个设备联动 · {scene.triggers.length} 种触发方式
+        <p className="text-sm text-gray-400 mb-3">
+          {scene.actions.length} 个动作 · {scene.triggers.length} 种触发方式
         </p>
+
+        {deviceStats.deviceCount > 0 && (
+          <div className="mb-4">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDevices(!showDevices);
+              }}
+              className="w-full flex items-center justify-between text-xs text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
+            >
+              <div className="flex items-center gap-2">
+                <Layers className="w-3.5 h-3.5 text-primary-400" />
+                <span>
+                  控制 <span className="text-white font-semibold">{deviceStats.roomCount}</span> 个房间，
+                  <span className="text-white font-semibold"> {deviceStats.deviceCount}</span> 台设备
+                </span>
+              </div>
+              {showDevices ? (
+                <ChevronUp className="w-3.5 h-3.5" />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5" />
+              )}
+            </button>
+
+            {showDevices && (
+              <div className="mt-2 space-y-1 animate-fade-in">
+                {deviceStats.affectedDevices.map((device) => (
+                  <div
+                    key={device.id}
+                    className="flex items-center gap-2 text-xs text-gray-400 px-2 py-1.5 rounded-lg bg-white/5"
+                  >
+                    <Cpu className="w-3 h-3 text-warning-400" />
+                    <span className="truncate">{device.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-1.5 mb-5">
           {scene.triggers.map((t) => (

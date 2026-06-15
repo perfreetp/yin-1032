@@ -19,6 +19,10 @@ import { useEnergyStore, type TimeRange } from '@/store/useEnergyStore';
 export interface TrendChartProps {
   className?: string;
   height?: number;
+  data?: { label: string; value: number; power?: number }[];
+  title?: string;
+  subtitle?: string;
+  showTimeRange?: boolean;
 }
 
 const timeRanges: { key: TimeRange; label: string }[] = [
@@ -72,8 +76,17 @@ const CustomTooltip = ({
   );
 };
 
-const TrendChart = ({ className, height = 360 }: TrendChartProps) => {
-  const { trendData, timeRange, setTimeRange, summary } = useEnergyStore();
+const TrendChart = ({
+  className,
+  height = 360,
+  data,
+  title = '能耗趋势',
+  subtitle,
+  showTimeRange = true,
+}: TrendChartProps) => {
+  const store = useEnergyStore();
+  const trendData = data || store.trendData;
+  const { timeRange, setTimeRange, summary } = store;
 
   const total = useMemo(
     () => trendData.reduce((acc, d) => acc + (d.value || 0), 0).toFixed(1),
@@ -102,13 +115,17 @@ const TrendChart = ({ className, height = 360 }: TrendChartProps) => {
             <Activity className="w-5 h-5 text-primary-400" />
           </div>
           <div>
-            <h3 className="font-bold text-lg">能耗趋势</h3>
+            <h3 className="font-bold text-lg">{title}</h3>
             <p className="text-xs text-muted-foreground">
-              <span className="text-muted-foreground/50">
-                总计{timeRanges.find((r) => r.key === timeRange)?.label}度:{' '}
-              </span>
-              <span className="font-orbitron font-semibold text-primary-300">{total}</span>
-              <span className="text-xs text-muted-foreground ml-1">kWh</span>
+              {subtitle || (
+                <>
+                  <span className="text-muted-foreground/50">
+                    总计{timeRanges.find((r) => r.key === timeRange)?.label}度:{' '}
+                  </span>
+                  <span className="font-orbitron font-semibold text-primary-300">{total}</span>
+                  <span className="text-xs text-muted-foreground ml-1">kWh</span>
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -125,22 +142,24 @@ const TrendChart = ({ className, height = 360 }: TrendChartProps) => {
             </div>
           </div>
 
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-white/5 border border-white/10">
-            {timeRanges.map((range) => (
-              <button
-                key={range.key}
-                onClick={() => setTimeRange(range.key)}
-                className={cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300',
-                  timeRange === range.key
-                    ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-glow-primary'
-                    : 'text-muted-foreground hover:text-white hover:bg-white/5'
-                )}
-              >
-                {range.label}
-              </button>
-            ))}
-          </div>
+          {showTimeRange && (
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-white/5 border border-white/10">
+              {timeRanges.map((range) => (
+                <button
+                  key={range.key}
+                  onClick={() => setTimeRange(range.key)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300',
+                    timeRange === range.key
+                      ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-glow-primary'
+                      : 'text-muted-foreground hover:text-white hover:bg-white/5'
+                  )}
+                >
+                  {range.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

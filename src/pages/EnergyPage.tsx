@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Zap,
   Calendar,
@@ -11,6 +11,10 @@ import {
   PlugZap,
   Battery,
   ArrowRight,
+  ArrowLeft,
+  Home,
+  BarChart3,
+  Activity,
 } from 'lucide-react';
 import {
   PieChart,
@@ -23,11 +27,12 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
+  type TooltipProps,
 } from 'recharts';
 import dayjs from 'dayjs';
 import { useEnergyStore } from '@/store/useEnergyStore';
 import { useAppStore } from '@/store/useAppStore';
+import type { EnergyCategoryStat } from '@/mock/energy';
 import GlassCard from '@/components/common/GlassCard';
 import StatBlock from '@/components/common/StatBlock';
 import GradientButton from '@/components/common/GradientButton';
@@ -91,12 +96,31 @@ const categoryIcons: Record<string, typeof Zap> = {
 
 const EnergyPage = () => {
   const currentHouseId = useAppStore((state) => state.currentHouseId);
-  const { summary, categoryStats, roomStats, fetchEnergy } = useEnergyStore();
+  const {
+    summary,
+    categoryStats,
+    roomStats,
+    fetchEnergy,
+    selectedRoomId,
+    selectRoom,
+    roomEnergy,
+  } = useEnergyStore();
+
+  const [showRoomDetail, setShowRoomDetail] = useState(false);
 
   useEffect(() => {
     if (!currentHouseId) return;
     fetchEnergy(currentHouseId);
   }, [currentHouseId, fetchEnergy]);
+
+  useEffect(() => {
+    setShowRoomDetail(!!selectedRoomId && !!roomEnergy);
+  }, [selectedRoomId, roomEnergy]);
+
+  const selectedRoom = useMemo(() => {
+    if (!selectedRoomId) return null;
+    return roomStats.find((r) => r.category === selectedRoomId) || null;
+  }, [selectedRoomId, roomStats]);
 
   const totalSaving = useMemo(() => {
     return savingTips.reduce((acc, tip) => {
@@ -109,9 +133,9 @@ const EnergyPage = () => {
     return (summary.monthUsage * 0.785).toFixed(1);
   }, [summary.monthUsage]);
 
-  const renderCategoryTooltip = ({ active, payload }: any) => {
+  const renderCategoryTooltip = ({ active, payload }: TooltipProps<number, string>) => {
     if (!active || !payload || payload.length === 0) return null;
-    const data = payload[0].payload;
+    const data = payload[0].payload as EnergyCategoryStat;
     return (
       <div className="px-4 py-3 rounded-xl bg-deepspace-600/95 backdrop-blur-xl border border-white/10 shadow-2xl animate-scale-in">
         <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
@@ -139,9 +163,9 @@ const EnergyPage = () => {
     );
   };
 
-  const renderRoomTooltip = ({ active, payload }: any) => {
+  const renderRoomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
     if (!active || !payload || payload.length === 0) return null;
-    const data = payload[0].payload;
+    const data = payload[0].payload as EnergyCategoryStat;
     return (
       <div className="px-4 py-3 rounded-xl bg-deepspace-600/95 backdrop-blur-xl border border-white/10 shadow-2xl animate-scale-in">
         <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
@@ -336,7 +360,7 @@ const EnergyPage = () => {
           </div>
         </GlassCard>
 
-        <GlassCard hover={false} className="p-6">
+        <GlassCard hover={false} className={cn('p-6 transition-all duration-500', showRoomDetail && 'ring-2 ring-primary-500/50')}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-secondary-500/20 to-purple-500/20 border border-secondary-500/30 flex items-center justify-center">
@@ -344,9 +368,21 @@ const EnergyPage = () => {
               </div>
               <div>
                 <h3 className="font-bold text-lg">按房间分类</h3>
-                <p className="text-xs text-muted-foreground">本月各房间用电对比</p>
+                <p className="text-xs text-muted-foreground">
+                  本月各房间用电对比
+                  {!showRoomDetail && <span className="ml-2 text-primary-400">· 点击房间查看详情</span>}
+                </p>
               </div>
             </div>
+            {selectedRoom && (
+              <button
+                onClick={() => selectRoom(null)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-muted-foreground hover:text-white hover:bg-white/10 transition-all"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                返回总览
+              </button>
+            )}
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -394,12 +430,20 @@ const EnergyPage = () => {
                   dataKey="value"
                   radius={[6, 6, 0, 0]}
                   barSize={32}
+                  onClick={(data) => selectRoom(data.category)}
+                  cursor="pointer"
                 >
                   {roomStats.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={`url(#room-bar-grad-${index})`}
-                      style={{ filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.3))' }}
+                      style={{
+                        filter: selectedRoomId === entry.category
+                          ? `drop-shadow(0 0 12px ${entry.color}80)`
+                          : 'drop-shadow(0 0 6px rgba(0,0,0,0.3))',
+                        opacity: selectedRoomId && selectedRoomId !== entry.category ? 0.5 : 1,
+                        transition: 'all 0.3s ease',
+                      }}
                     />
                   ))}
                 </Bar>
@@ -410,11 +454,20 @@ const EnergyPage = () => {
             {roomStats.slice(0, 3).map((room) => (
               <div
                 key={room.category}
-                className="p-3 rounded-xl bg-white/5 border border-white/10"
+                onClick={() => selectRoom(room.category)}
+                className={cn(
+                  'p-3 rounded-xl border cursor-pointer transition-all duration-300',
+                  selectedRoomId === room.category
+                    ? 'bg-white/15 border-primary-500/50 ring-1 ring-primary-500/30'
+                    : 'bg-white/5 border-white/10 hover:bg-white/10'
+                )}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <div
-                    className="w-2.5 h-2.5 rounded-full"
+                    className={cn(
+                      'w-2.5 h-2.5 rounded-full',
+                      selectedRoomId === room.category && 'animate-pulse'
+                    )}
                     style={{ background: room.color }}
                   />
                   <span className="text-xs font-medium text-white/80">
@@ -431,6 +484,142 @@ const EnergyPage = () => {
             ))}
           </div>
         </GlassCard>
+      </div>
+
+      <div
+        className={cn(
+          'overflow-hidden transition-all duration-500 ease-in-out',
+          showRoomDetail && roomEnergy && selectedRoom
+            ? 'max-h-[2000px] opacity-100 mb-6'
+            : 'max-h-0 opacity-0'
+        )}
+      >
+        {roomEnergy && selectedRoom && (
+          <GlassCard hover={false} className="p-6 border-primary-500/30">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                  style={{
+                    background: `linear-gradient(135deg, ${selectedRoom.color}30, ${selectedRoom.color}10)`,
+                    border: `1px solid ${selectedRoom.color}40`,
+                  }}
+                >
+                  <Home className="w-7 h-7" style={{ color: selectedRoom.color }} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                    {selectedRoom.name}
+                    <span className="text-sm font-normal text-muted-foreground">能耗详情</span>
+                  </h2>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-xs text-muted-foreground">今日用电</span>
+                    <span className="font-orbitron font-bold text-xl" style={{ color: selectedRoom.color }}>
+                      {(selectedRoom.value / 30).toFixed(1)}
+                      <span className="text-xs text-muted-foreground ml-1 font-normal">kWh</span>
+                    </span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-muted-foreground">
+                      占总用电 {selectedRoom.percentage}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => selectRoom(null)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-muted-foreground hover:text-white hover:bg-white/10 transition-all group"
+              >
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+                返回总览
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <TrendChart
+                data={roomEnergy.dailyTrend.map((item) => ({
+                  label: item.date,
+                  value: item.value,
+                  power: item.value * 40,
+                }))}
+                title="近7天趋势"
+                subtitle={`${selectedRoom.name} 近7天用电趋势`}
+                showTimeRange={false}
+                height={300}
+              />
+
+              <RankBar
+                data={roomEnergy.deviceRank}
+                title="房间设备排行"
+                subtitle={`${selectedRoom.name} 内设备能耗排行`}
+                limit={5}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-white/5">
+              {[
+                {
+                  label: '今日用电',
+                  value: (selectedRoom.value / 30).toFixed(1),
+                  unit: 'kWh',
+                  icon: Zap,
+                  color: 'from-primary-400 to-secondary-500',
+                },
+                {
+                  label: '本周用电',
+                  value: roomEnergy.dailyTrend.reduce((acc, d) => acc + d.value, 0).toFixed(1),
+                  unit: 'kWh',
+                  icon: Calendar,
+                  color: 'from-emerald-400 to-teal-500',
+                },
+                {
+                  label: '月均用电',
+                  value: selectedRoom.value.toFixed(1),
+                  unit: 'kWh',
+                  icon: BarChart3,
+                  color: 'from-warning-400 to-danger-500',
+                },
+                {
+                  label: '设备数量',
+                  value: roomEnergy.deviceRank.length.toString(),
+                  unit: '台',
+                  icon: Activity,
+                  color: 'from-purple-400 to-pink-500',
+                },
+              ].map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <div
+                    key={stat.label}
+                    className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10"
+                  >
+                    <div
+                      className={cn(
+                        'w-12 h-12 rounded-xl flex items-center justify-center shrink-0',
+                        'bg-gradient-to-br',
+                        stat.color
+                      )}
+                      style={{
+                        boxShadow: `0 4px 12px rgba(0,0,0,0.3)`,
+                      }}
+                    >
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-1">
+                        <span className="font-orbitron font-bold text-xl leading-none text-white">
+                          {stat.value}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">{stat.unit}</span>
+                      </div>
+                      <div className="text-[10px] text-muted-foreground mt-1">
+                        {stat.label}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </GlassCard>
+        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -532,7 +721,7 @@ const EnergyPage = () => {
   );
 };
 
-function HomeIcon(props: any) {
+function HomeIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}

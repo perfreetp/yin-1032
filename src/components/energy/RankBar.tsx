@@ -8,6 +8,9 @@ import type { EnergyRankItem } from '@/mock/energy';
 export interface RankBarProps {
   className?: string;
   limit?: number;
+  data?: { deviceId: string; deviceName: string; category: string; value: number; unit: string; trend: number }[];
+  title?: string;
+  subtitle?: string;
 }
 
 const rankGradient: Record<number, { bg: string; text: string; border: string; badge: string }> = {
@@ -31,14 +34,34 @@ const rankGradient: Record<number, { bg: string; text: string; border: string; b
   },
 };
 
-const RankBar = ({ className, limit = 10 }: RankBarProps) => {
-  const { rankList } = useEnergyStore();
+const RankBar = ({ className, limit = 10, data, title, subtitle }: RankBarProps) => {
+  const store = useEnergyStore();
+  const storeRankList = data
+    ? data.map((item, index) => ({
+      ...item,
+      rank: index + 1,
+      roomId: '',
+    }) as EnergyRankItem)
+    : store.rankList;
+
   const [animated, setAnimated] = useState<Record<string, number>>({});
 
-  const sortedList = useMemo(
-    () => [...rankList].sort((a, b) => a.rank - b.rank).slice(0, limit),
-    [rankList, limit]
-  );
+  const sortedList = useMemo(() => {
+    const list = [...storeRankList].sort((a, b) => {
+      if (data) {
+        return b.value - a.value;
+      }
+      return a.rank - b.rank;
+    }).slice(0, limit);
+    
+    if (data) {
+      return list.map((item, index) => ({
+        ...item,
+        rank: index + 1,
+      }));
+    }
+    return list;
+  }, [storeRankList, limit, data]);
 
   const maxValue = useMemo(
     () => Math.max(...sortedList.map((item) => item.value), 1),
@@ -107,11 +130,15 @@ const RankBar = ({ className, limit = 10 }: RankBarProps) => {
             <Trophy className="w-5 h-5 text-warning-400" />
           </div>
           <div>
-            <h3 className="font-bold text-lg">能耗排行</h3>
+            <h3 className="font-bold text-lg">{title || '能耗排行'}</h3>
             <p className="text-xs text-muted-foreground">
-              TOP {sortedList.length} 设备
-              <span className="mx-1.5">·</span>
-              合计 {totalValue.toFixed(1)} kWh
+              {subtitle || (
+                <>
+                  TOP {sortedList.length} 设备
+                  <span className="mx-1.5">·</span>
+                  合计 {totalValue.toFixed(1)} kWh
+                </>
+              )}
             </p>
           </div>
         </div>

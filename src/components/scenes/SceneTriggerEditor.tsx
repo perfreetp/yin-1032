@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   Hand,
   Clock,
@@ -15,8 +15,9 @@ import { cn } from '@/lib/utils';
 import GlassCard from '@/components/common/GlassCard';
 import GradientButton from '@/components/common/GradientButton';
 import { useSceneStore } from '@/store/useSceneStore';
+import { useAppStore } from '@/store/useAppStore';
+import { useDeviceStore } from '@/store/useDeviceStore';
 import type { Scene, SceneTriggerType, SceneTrigger, SceneTriggerConfig } from '@/types/scene';
-import { devices } from '@/mock/devices';
 
 const triggerTypeConfig: Record<
   SceneTriggerType,
@@ -65,6 +66,13 @@ interface ExpandedTrigger {
 
 const SceneTriggerEditor = ({ scene, className }: SceneTriggerEditorProps) => {
   const { addTrigger, updateTrigger, removeTrigger } = useSceneStore();
+  const currentHouseId = useAppStore((state) => state.currentHouseId);
+  const { devices } = useDeviceStore();
+
+  const currentDevices = useMemo(
+    () => devices.filter((d) => d.houseId === currentHouseId),
+    [devices, currentHouseId]
+  );
   const [expanded, setExpanded] = useState<ExpandedTrigger>({});
   const [addingType, setAddingType] = useState<SceneTriggerType | null>(null);
 
@@ -78,13 +86,13 @@ const SceneTriggerEditor = ({ scene, className }: SceneTriggerEditorProps) => {
       if (type === 'schedule') config.cronExpression = '0 8 * * *';
       if (type === 'location') config.location = 'arrive';
       if (type === 'device') {
-        config.deviceId = devices[0]?.id;
+        config.deviceId = currentDevices[0]?.id;
         config.condition = 'power == true';
       }
       addTrigger(scene.id, { type, config });
       setAddingType(null);
     },
-    [scene.id, addTrigger]
+    [scene.id, addTrigger, currentDevices]
   );
 
   const handleUpdateConfig = useCallback(
@@ -212,7 +220,7 @@ const SceneTriggerEditor = ({ scene, className }: SceneTriggerEditorProps) => {
                 onChange={(e) => handleUpdateConfig(trigger.id, 'deviceId', e.target.value)}
                 className="w-full glass-input text-sm"
               >
-                {devices.map((d) => (
+                {currentDevices.map((d) => (
                   <option key={d.id} value={d.id} className="bg-deepspace-600">
                     {d.name}
                   </option>

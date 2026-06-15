@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   Cpu,
   Play,
@@ -16,8 +16,9 @@ import { cn } from '@/lib/utils';
 import GlassCard from '@/components/common/GlassCard';
 import GradientButton from '@/components/common/GradientButton';
 import { useSceneStore } from '@/store/useSceneStore';
+import { useAppStore } from '@/store/useAppStore';
+import { useDeviceStore } from '@/store/useDeviceStore';
 import type { Scene, SceneActionType, SceneAction } from '@/types/scene';
-import { devices } from '@/mock/devices';
 
 const actionTypeConfig: Record<
   SceneActionType,
@@ -61,7 +62,19 @@ interface DragState {
 }
 
 const SceneActionEditor = ({ scene, className }: SceneActionEditorProps) => {
-  const { addAction, updateAction, removeAction, reorderActions } = useSceneStore();
+  const { addAction, updateAction, removeAction, reorderActions, scenes } = useSceneStore();
+  const currentHouseId = useAppStore((state) => state.currentHouseId);
+  const { devices } = useDeviceStore();
+
+  const currentDevices = useMemo(
+    () => devices.filter((d) => d.houseId === currentHouseId),
+    [devices, currentHouseId]
+  );
+
+  const currentScenes = useMemo(
+    () => scenes.filter((s) => s.houseId === currentHouseId && s.id !== scene.id),
+    [scenes, currentHouseId, scene.id]
+  );
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [dragState, setDragState] = useState<DragState>({
@@ -87,7 +100,7 @@ const SceneActionEditor = ({ scene, className }: SceneActionEditorProps) => {
       };
 
       if (type === 'setDeviceState') {
-        baseAction.target = { deviceId: devices[0]?.id };
+        baseAction.target = { deviceId: currentDevices[0]?.id };
         baseAction.state = { power: true };
       } else if (type === 'delay') {
         baseAction.delayMs = 5000;
@@ -150,7 +163,7 @@ const SceneActionEditor = ({ scene, className }: SceneActionEditorProps) => {
   const getActionSummary = (action: SceneAction): string => {
     switch (action.type) {
       case 'setDeviceState': {
-        const device = devices.find((d) => d.id === action.target.deviceId);
+        const device = currentDevices.find((d) => d.id === action.target.deviceId);
         const stateStr = Object.entries(action.state || {})
           .map(([k, v]) => `${k}=${String(v)}`)
           .join(', ');
@@ -185,7 +198,7 @@ const SceneActionEditor = ({ scene, className }: SceneActionEditorProps) => {
                 }
                 className="w-full glass-input text-sm"
               >
-                {devices.map((d) => (
+                {currentDevices.map((d) => (
                   <option key={d.id} value={d.id} className="bg-deepspace-600">
                     {d.name}
                   </option>
@@ -333,18 +346,16 @@ const SceneActionEditor = ({ scene, className }: SceneActionEditorProps) => {
                 }
                 className="w-full glass-input text-sm"
               >
-                {scene.actions.length > 0 && (
-                  <option value="" className="bg-deepspace-600">
-                    请选择场景
-                  </option>
-                )}
-                {devices.slice(0, 5).map((_, i) => (
+                <option value="" className="bg-deepspace-600">
+                  请选择场景
+                </option>
+                {currentScenes.map((s) => (
                   <option
-                    key={i}
-                    value={`scene-${i + 1}`}
+                    key={s.id}
+                    value={s.id}
                     className="bg-deepspace-600"
                   >
-                    场景 {i + 1}
+                    {s.name}
                   </option>
                 ))}
               </select>

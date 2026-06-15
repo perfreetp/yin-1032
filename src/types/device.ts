@@ -104,6 +104,10 @@ export interface LockDeviceState {
  * pm25: PM2.5浓度（μg/m³）
  * co2: 二氧化碳浓度（ppm）
  * illumination: 照度（lux）
+ * smoke: 烟雾检测（true=检测到烟雾）
+ * waterLeak: 水浸检测（true=检测到漏水）
+ * doorContact: 门磁状态（open=打开，close=关闭）
+ * motion: 人体感应（true=检测到人体）
  */
 export interface SensorReading {
   temperature?: number;
@@ -111,6 +115,10 @@ export interface SensorReading {
   pm25?: number;
   co2?: number;
   illumination?: number;
+  smoke?: boolean;
+  waterLeak?: boolean;
+  doorContact?: 'open' | 'close';
+  motion?: boolean;
 }
 
 /**

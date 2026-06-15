@@ -30,6 +30,9 @@ import {
   Fan,
   Tv2,
   Wifi,
+  Layers,
+  ChevronDown,
+  ChevronUp,
   type LucideIcon,
 } from 'lucide-react';
 import GlassCard from '@/components/common/GlassCard';
@@ -38,6 +41,7 @@ import SceneTriggerEditor from '@/components/scenes/SceneTriggerEditor';
 import SceneActionEditor from '@/components/scenes/SceneActionEditor';
 import { useSceneStore } from '@/store/useSceneStore';
 import { useAppStore } from '@/store/useAppStore';
+import { useDeviceStore } from '@/store/useDeviceStore';
 import { cn } from '@/lib/utils';
 import type { Scene } from '@/types/scene';
 
@@ -588,7 +592,35 @@ export default function SceneEditorPage() {
 
 function PreviewSceneCard({ scene }: { scene: Scene }) {
   const Icon = iconMap[scene.icon] || Sparkles;
-  const deviceCount = scene.actions.filter((a) => a.target.deviceId).length;
+  const { devices } = useDeviceStore();
+  const [showDevices, setShowDevices] = useState(false);
+
+  const deviceStats = useMemo(() => {
+    const deviceIds = new Set<string>();
+    const roomIds = new Set<string>();
+    const affectedDevices: Array<{ id: string; name: string; roomId: string }> = [];
+
+    scene.actions.forEach((action) => {
+      if (action.target.deviceId) {
+        const device = devices.find((d) => d.id === action.target.deviceId);
+        if (device) {
+          deviceIds.add(device.id);
+          roomIds.add(device.roomId);
+          affectedDevices.push({
+            id: device.id,
+            name: device.name,
+            roomId: device.roomId,
+          });
+        }
+      }
+    });
+
+    return {
+      deviceCount: deviceIds.size,
+      roomCount: roomIds.size,
+      affectedDevices,
+    };
+  }, [scene.actions, devices]);
 
   return (
     <div
@@ -662,7 +694,7 @@ function PreviewSceneCard({ scene }: { scene: Scene }) {
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Cpu className="w-4 h-4 text-primary-400" />
             <span>
-              <span className="text-white font-semibold">{deviceCount}</span> 个设备
+              <span className="text-white font-semibold">{scene.actions.length}</span> 个动作
             </span>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -672,6 +704,45 @@ function PreviewSceneCard({ scene }: { scene: Scene }) {
             </span>
           </div>
         </div>
+
+        {deviceStats.deviceCount > 0 && (
+          <div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDevices(!showDevices);
+              }}
+              className="w-full flex items-center justify-between text-xs text-muted-foreground hover:text-white transition-colors py-2"
+            >
+              <div className="flex items-center gap-2">
+                <Layers className="w-3.5 h-3.5 text-primary-400" />
+                <span>
+                  控制 <span className="text-white font-semibold">{deviceStats.roomCount}</span> 个房间，
+                  <span className="text-white font-semibold"> {deviceStats.deviceCount}</span> 台设备
+                </span>
+              </div>
+              {showDevices ? (
+                <ChevronUp className="w-3.5 h-3.5" />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5" />
+              )}
+            </button>
+
+            {showDevices && (
+              <div className="mt-2 space-y-1 animate-fade-in">
+                {deviceStats.affectedDevices.map((device) => (
+                  <div
+                    key={device.id}
+                    className="flex items-center gap-2 text-xs text-muted-foreground px-2 py-1.5 rounded-lg bg-white/5"
+                  >
+                    <Cpu className="w-3 h-3 text-warning-400" />
+                    <span className="truncate">{device.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-1.5">
           {scene.triggers.length > 0 ? (

@@ -238,6 +238,113 @@ export const getTrendData = (range: TimeRange, houseId: string = 'house-villa-00
   }
 };
 
+export interface RoomDailyTrendItem {
+  date: string;
+  value: number;
+}
+
+export interface RoomDeviceRankItem {
+  deviceId: string;
+  deviceName: string;
+  category: string;
+  value: number;
+  unit: string;
+  trend: number;
+}
+
+export interface RoomEnergyData {
+  dailyTrend: RoomDailyTrendItem[];
+  deviceRank: RoomDeviceRankItem[];
+}
+
+const generateRoomDailyTrend = (baseValue: number): RoomDailyTrendItem[] => {
+  const labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+  return labels.map((label) => ({
+    date: label,
+    value: Number((baseValue * (0.7 + Math.random() * 0.6)).toFixed(1)),
+  }));
+};
+
+const getDevicesByRoom = (
+  rankList: EnergyRankItem[],
+  roomId: string
+): RoomDeviceRankItem[] => {
+  return rankList
+    .filter((item) => item.roomId === roomId)
+    .sort((a, b) => b.value - a.value)
+    .map((item) => ({
+      deviceId: item.deviceId,
+      deviceName: item.deviceName,
+      category: item.category,
+      value: item.value,
+      unit: item.unit,
+      trend: item.trend,
+    }));
+};
+
+const villaRoomEnergy: Record<string, RoomEnergyData> = {
+  'room-villa-001': {
+    dailyTrend: generateRoomDailyTrend(215.8 / 7),
+    deviceRank: getDevicesByRoom(villaRankList, 'room-villa-001'),
+  },
+  'room-villa-002': {
+    dailyTrend: generateRoomDailyTrend(148.5 / 7),
+    deviceRank: getDevicesByRoom(villaRankList, 'room-villa-002'),
+  },
+  'room-villa-003': {
+    dailyTrend: generateRoomDailyTrend(92.3 / 7),
+    deviceRank: getDevicesByRoom(villaRankList, 'room-villa-003'),
+  },
+  'room-villa-005': {
+    dailyTrend: generateRoomDailyTrend(75.6 / 7),
+    deviceRank: getDevicesByRoom(villaRankList, 'room-villa-005'),
+  },
+  'room-villa-009': {
+    dailyTrend: generateRoomDailyTrend(58.2 / 7),
+    deviceRank: getDevicesByRoom(villaRankList, 'room-villa-009'),
+  },
+  'room-villa-008': {
+    dailyTrend: generateRoomDailyTrend(44.8 / 7),
+    deviceRank: getDevicesByRoom(villaRankList, 'room-villa-008'),
+  },
+};
+
+const apartmentRoomEnergy: Record<string, RoomEnergyData> = {
+  'room-apt-001': {
+    dailyTrend: generateRoomDailyTrend(72.8 / 7),
+    deviceRank: getDevicesByRoom(apartmentRankList, 'room-apt-001'),
+  },
+  'room-apt-002': {
+    dailyTrend: generateRoomDailyTrend(48.5 / 7),
+    deviceRank: getDevicesByRoom(apartmentRankList, 'room-apt-002'),
+  },
+  'room-apt-003': {
+    dailyTrend: generateRoomDailyTrend(35.3 / 7),
+    deviceRank: getDevicesByRoom(apartmentRankList, 'room-apt-003'),
+  },
+  'room-apt-004': {
+    dailyTrend: generateRoomDailyTrend(28.6 / 7),
+    deviceRank: getDevicesByRoom(apartmentRankList, 'room-apt-004'),
+  },
+  'room-apt-005': {
+    dailyTrend: generateRoomDailyTrend(18.2 / 7),
+    deviceRank: getDevicesByRoom(apartmentRankList, 'room-apt-005'),
+  },
+  'room-apt-006': {
+    dailyTrend: generateRoomDailyTrend(15.8 / 7),
+    deviceRank: getDevicesByRoom(apartmentRankList, 'room-apt-006'),
+  },
+};
+
+export const roomEnergyByHouse: Record<string, Record<string, RoomEnergyData>> = {
+  'house-villa-001': villaRoomEnergy,
+  'house-apartment-002': apartmentRoomEnergy,
+};
+
+export const getRoomEnergy = (houseId: string, roomId: string): RoomEnergyData | null => {
+  return roomEnergyByHouse[houseId]?.[roomId] || null;
+};
+
 export const energyHourlyTrend = energyDataByHouse['house-villa-001'].trend24h;
 export const energyDailyTrend = energyDataByHouse['house-villa-001'].trend30d;
 export const energyByCategory = energyDataByHouse['house-villa-001'].categoryStats;
