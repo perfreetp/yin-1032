@@ -367,12 +367,17 @@ export default function ScenesPage() {
     }
   }, [currentHouseId, fetchScenes]);
 
+  const houseScenes = useMemo(
+    () => scenes.filter((s) => s.houseId === currentHouseId),
+    [scenes, currentHouseId]
+  );
+
   const stats = useMemo(() => ({
-    total: scenes.length,
-    enabled: scenes.filter((s) => s.enabled).length,
-    hasLocation: scenes.filter((s) => s.triggers.some((t) => t.type === 'location')).length,
-    hasSchedule: scenes.filter((s) => s.triggers.some((t) => t.type === 'schedule')).length,
-  }), [scenes]);
+    total: houseScenes.length,
+    enabled: houseScenes.filter((s) => s.enabled).length,
+    hasLocation: houseScenes.filter((s) => s.triggers.some((t) => t.type === 'location')).length,
+    hasSchedule: houseScenes.filter((s) => s.triggers.some((t) => t.type === 'schedule')).length,
+  }), [houseScenes]);
 
   const handleRunScene = async (id: string) => {
     await runScene(id);
@@ -440,7 +445,7 @@ export default function ScenesPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {scenes.map((scene) => (
+        {houseScenes.map((scene) => (
           <SceneCard
             key={scene.id}
             scene={scene}

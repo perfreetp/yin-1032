@@ -65,38 +65,38 @@ const villaCategoryStats: EnergyCategoryStat[] = [
   { category: 'ac', name: '空调', value: 268.5, percentage: 42.3, color: '#3B82F6' },
   { category: 'light', name: '照明', value: 112.3, percentage: 17.7, color: '#F59E0B' },
   { category: 'tv', name: '影音娱乐', value: 88.6, percentage: 14.0, color: '#8B5CF6' },
-  { category: 'water', name: '厨房电器', value: 65.2, percentage: 10.3, color: '#10B981' },
-  { category: 'speaker', name: '其他设备', value: 42.8, percentage: 6.7, color: '#EC4899' },
-  { category: 'sensor', name: '传感器', value: 25.5, percentage: 4.0, color: '#06B6D4' },
-  { category: 'other', name: '待机功耗', value: 31.4, percentage: 5.0, color: '#64748B' },
+  { category: 'speaker', name: '智能音箱', value: 65.2, percentage: 10.3, color: '#10B981' },
+  { category: 'curtain', name: '智能窗帘', value: 42.8, percentage: 6.7, color: '#EC4899' },
+  { category: 'camera', name: '摄像头', value: 25.5, percentage: 4.0, color: '#06B6D4' },
+  { category: 'sensor', name: '传感器', value: 31.4, percentage: 5.0, color: '#64748B' },
 ];
 
 const apartmentCategoryStats: EnergyCategoryStat[] = [
   { category: 'ac', name: '空调', value: 62.5, percentage: 28.5, color: '#3B82F6' },
   { category: 'light', name: '照明', value: 55.3, percentage: 25.2, color: '#F59E0B' },
   { category: 'tv', name: '影音娱乐', value: 32.6, percentage: 14.9, color: '#8B5CF6' },
-  { category: 'water', name: '厨房电器', value: 28.2, percentage: 12.9, color: '#10B981' },
-  { category: 'speaker', name: '其他设备', value: 18.8, percentage: 8.6, color: '#EC4899' },
-  { category: 'sensor', name: '传感器', value: 10.5, percentage: 4.8, color: '#06B6D4' },
-  { category: 'other', name: '待机功耗', value: 11.4, percentage: 5.2, color: '#64748B' },
+  { category: 'speaker', name: '智能音箱', value: 28.2, percentage: 12.9, color: '#10B981' },
+  { category: 'curtain', name: '智能窗帘', value: 18.8, percentage: 8.6, color: '#EC4899' },
+  { category: 'lock', name: '智能门锁', value: 10.5, percentage: 4.8, color: '#06B6D4' },
+  { category: 'sensor', name: '传感器', value: 11.4, percentage: 5.2, color: '#64748B' },
 ];
 
 const villaRoomStats: EnergyCategoryStat[] = [
-  { category: 'living', name: '客厅', value: 215.8, percentage: 34.0, color: '#3B82F6' },
-  { category: 'master', name: '主卧', value: 148.5, percentage: 23.4, color: '#8B5CF6' },
-  { category: 'second', name: '次卧', value: 92.3, percentage: 14.5, color: '#F59E0B' },
-  { category: 'kitchen', name: '厨房', value: 75.6, percentage: 11.9, color: '#10B981' },
-  { category: 'study', name: '书房', value: 58.2, percentage: 9.2, color: '#EC4899' },
-  { category: 'other', name: '其他房间', value: 44.8, percentage: 7.0, color: '#06B6D4' },
+  { category: 'room-villa-001', name: '客厅', value: 215.8, percentage: 34.0, color: '#3B82F6' },
+  { category: 'room-villa-002', name: '主卧', value: 148.5, percentage: 23.4, color: '#8B5CF6' },
+  { category: 'room-villa-003', name: '次卧', value: 92.3, percentage: 14.5, color: '#F59E0B' },
+  { category: 'room-villa-005', name: '厨房', value: 75.6, percentage: 11.9, color: '#10B981' },
+  { category: 'room-villa-009', name: '书房', value: 58.2, percentage: 9.2, color: '#EC4899' },
+  { category: 'room-villa-008', name: '花园露台', value: 44.8, percentage: 7.0, color: '#06B6D4' },
 ];
 
 const apartmentRoomStats: EnergyCategoryStat[] = [
-  { category: 'living', name: '客厅', value: 72.8, percentage: 33.2, color: '#3B82F6' },
-  { category: 'master', name: '主卧', value: 48.5, percentage: 22.1, color: '#8B5CF6' },
-  { category: 'second', name: '次卧', value: 35.3, percentage: 16.1, color: '#F59E0B' },
-  { category: 'kitchen', name: '厨房', value: 28.6, percentage: 13.0, color: '#10B981' },
-  { category: 'bathroom', name: '卫生间', value: 18.2, percentage: 8.3, color: '#EC4899' },
-  { category: 'balcony', name: '海景阳台', value: 15.8, percentage: 7.2, color: '#06B6D4' },
+  { category: 'room-apt-001', name: '客厅', value: 72.8, percentage: 33.2, color: '#3B82F6' },
+  { category: 'room-apt-002', name: '主卧', value: 48.5, percentage: 22.1, color: '#8B5CF6' },
+  { category: 'room-apt-003', name: '次卧', value: 35.3, percentage: 16.1, color: '#F59E0B' },
+  { category: 'room-apt-004', name: '厨房', value: 28.6, percentage: 13.0, color: '#10B981' },
+  { category: 'room-apt-005', name: '卫生间', value: 18.2, percentage: 8.3, color: '#EC4899' },
+  { category: 'room-apt-006', name: '海景阳台', value: 15.8, percentage: 7.2, color: '#06B6D4' },
 ];
 
 const villaRankList: EnergyRankItem[] = [
@@ -105,24 +105,24 @@ const villaRankList: EnergyRankItem[] = [
   { rank: 3, deviceId: 'dev-ac-002', deviceName: '主卧挂机空调', category: 'ac', roomId: 'room-villa-002', value: 52.8, unit: 'kWh', trend: -3.1 },
   { rank: 4, deviceId: 'dev-light-001', deviceName: '客厅主灯', category: 'light', roomId: 'room-villa-001', value: 48.4, unit: 'kWh', trend: -6.2 },
   { rank: 5, deviceId: 'dev-tv-001', deviceName: '客厅激光电视', category: 'tv', roomId: 'room-villa-001', value: 42.6, unit: 'kWh', trend: 5.4 },
-  { rank: 6, deviceId: 'dev-ac-004', deviceName: '书房空调', category: 'ac', roomId: 'room-villa-007', value: 35.8, unit: 'kWh', trend: 2.6 },
+  { rank: 6, deviceId: 'dev-ac-004', deviceName: '书房空调', category: 'ac', roomId: 'room-villa-009', value: 35.8, unit: 'kWh', trend: 2.6 },
   { rank: 7, deviceId: 'dev-speaker-001', deviceName: '客厅智能音箱', category: 'speaker', roomId: 'room-villa-001', value: 28.9, unit: 'kWh', trend: 1.8 },
-  { rank: 8, deviceId: 'dev-light-008', deviceName: '书房台灯', category: 'light', roomId: 'room-villa-007', value: 22.6, unit: 'kWh', trend: -2.8 },
+  { rank: 8, deviceId: 'dev-light-008', deviceName: '书房台灯', category: 'light', roomId: 'room-villa-009', value: 22.6, unit: 'kWh', trend: -2.8 },
   { rank: 9, deviceId: 'dev-light-006', deviceName: '厨房吊灯', category: 'light', roomId: 'room-villa-005', value: 18.3, unit: 'kWh', trend: 3.5 },
   { rank: 10, deviceId: 'dev-curtain-001', deviceName: '客厅落地窗帘', category: 'curtain', roomId: 'room-villa-001', value: 12.5, unit: 'kWh', trend: -0.5 },
 ];
 
 const apartmentRankList: EnergyRankItem[] = [
-  { rank: 1, deviceId: 'dev-ac-apt-001', deviceName: '客厅空调', category: 'ac', roomId: 'room-apt-001', value: 28.5, unit: 'kWh', trend: 8.3 },
-  { rank: 2, deviceId: 'dev-light-apt-001', deviceName: '客厅主灯', category: 'light', roomId: 'room-apt-001', value: 22.4, unit: 'kWh', trend: -3.2 },
-  { rank: 3, deviceId: 'dev-ac-apt-002', deviceName: '主卧空调', category: 'ac', roomId: 'room-apt-002', value: 18.8, unit: 'kWh', trend: -2.1 },
-  { rank: 4, deviceId: 'dev-tv-apt-001', deviceName: '客厅电视', category: 'tv', roomId: 'room-apt-001', value: 15.6, unit: 'kWh', trend: 2.4 },
-  { rank: 5, deviceId: 'dev-light-apt-002', deviceName: '主卧顶灯', category: 'light', roomId: 'room-apt-002', value: 12.8, unit: 'kWh', trend: -1.5 },
-  { rank: 6, deviceId: 'dev-water-apt-001', deviceName: '厨房冰箱', category: 'water', roomId: 'room-apt-004', value: 10.5, unit: 'kWh', trend: 1.2 },
-  { rank: 7, deviceId: 'dev-light-apt-003', deviceName: '次卧灯', category: 'light', roomId: 'room-apt-003', value: 8.6, unit: 'kWh', trend: 0.8 },
-  { rank: 8, deviceId: 'dev-speaker-apt-001', deviceName: '智能音箱', category: 'speaker', roomId: 'room-apt-001', value: 6.9, unit: 'kWh', trend: 0.5 },
-  { rank: 9, deviceId: 'dev-light-apt-004', deviceName: '厨房灯', category: 'light', roomId: 'room-apt-004', value: 5.3, unit: 'kWh', trend: -0.6 },
-  { rank: 10, deviceId: 'dev-fan-apt-001', deviceName: '阳台风扇', category: 'other', roomId: 'room-apt-006', value: 3.8, unit: 'kWh', trend: -0.2 },
+  { rank: 1, deviceId: 'dev-ac-005', deviceName: '公寓客厅空调', category: 'ac', roomId: 'room-apt-001', value: 28.5, unit: 'kWh', trend: 8.3 },
+  { rank: 2, deviceId: 'dev-ac-006', deviceName: '主卧空调', category: 'ac', roomId: 'room-apt-002', value: 22.4, unit: 'kWh', trend: -3.2 },
+  { rank: 3, deviceId: 'dev-light-011', deviceName: '客厅主灯(公寓)', category: 'light', roomId: 'room-apt-001', value: 18.8, unit: 'kWh', trend: -2.1 },
+  { rank: 4, deviceId: 'dev-tv-002', deviceName: '客厅电视', category: 'tv', roomId: 'room-apt-001', value: 15.6, unit: 'kWh', trend: 2.4 },
+  { rank: 5, deviceId: 'dev-light-012', deviceName: '海景主卧灯', category: 'light', roomId: 'room-apt-002', value: 12.8, unit: 'kWh', trend: -1.5 },
+  { rank: 6, deviceId: 'dev-light-013', deviceName: '次卧灯', category: 'light', roomId: 'room-apt-003', value: 10.5, unit: 'kWh', trend: 1.2 },
+  { rank: 7, deviceId: 'dev-speaker-003', deviceName: '智能音箱', category: 'speaker', roomId: 'room-apt-001', value: 8.6, unit: 'kWh', trend: 0.8 },
+  { rank: 8, deviceId: 'dev-light-014', deviceName: '厨房灯', category: 'light', roomId: 'room-apt-004', value: 6.9, unit: 'kWh', trend: 0.5 },
+  { rank: 9, deviceId: 'dev-curtain-005', deviceName: '阳台遮阳帘', category: 'curtain', roomId: 'room-apt-006', value: 5.3, unit: 'kWh', trend: -0.6 },
+  { rank: 10, deviceId: 'dev-light-015', deviceName: '卫生间灯', category: 'light', roomId: 'room-apt-005', value: 3.8, unit: 'kWh', trend: -0.2 },
 ];
 
 const villaSummary = {

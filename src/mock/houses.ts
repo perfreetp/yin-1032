@@ -37,6 +37,8 @@ export const rooms: Room[] = [
   { id: 'room-villa-006', houseId: 'house-villa-001', name: '主卫', type: 'bathroom', icon: 'bath' },
   { id: 'room-villa-007', houseId: 'house-villa-001', name: '客卫', type: 'bathroom', icon: 'shower-head' },
   { id: 'room-villa-008', houseId: 'house-villa-001', name: '花园露台', type: 'balcony', icon: 'sun' },
+  { id: 'room-villa-009', houseId: 'house-villa-001', name: '书房', type: 'study', icon: 'book-open' },
+  { id: 'room-villa-010', houseId: 'house-villa-001', name: '车库', type: 'garage', icon: 'car' },
   { id: 'room-apt-001', houseId: 'house-apartment-002', name: '客厅', type: 'living', icon: 'sofa' },
   { id: 'room-apt-002', houseId: 'house-apartment-002', name: '主卧', type: 'bedroom', icon: 'bed' },
   { id: 'room-apt-003', houseId: 'house-apartment-002', name: '次卧', type: 'bedroom', icon: 'bed-double' },

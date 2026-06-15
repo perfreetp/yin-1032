@@ -34,25 +34,34 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
     const { loadedHouseIds, customScenes, scenes } = get();
     
     if (houseId && loadedHouseIds.includes(houseId)) {
-      return houseId ? scenes.filter((s) => s.houseId === houseId) : scenes;
+      return scenes.filter((s) => s.houseId === houseId);
     }
     
     await new Promise((resolve) => setTimeout(resolve, 300));
-    let result = mockScenes;
+    
     if (houseId) {
-      result = mockScenes.filter((s) => s.houseId === houseId);
+      const otherHouseScenes = scenes.filter((s) => s.houseId !== houseId);
+      const houseMockScenes = mockScenes.filter((s) => s.houseId === houseId);
       const houseCustomScenes = customScenes.filter((s) => s.houseId === houseId);
-      result = [...result, ...houseCustomScenes];
+      const existingIds = new Set(otherHouseScenes.map((s) => s.id));
+      const merged = [...otherHouseScenes];
+      for (const s of [...houseMockScenes, ...houseCustomScenes]) {
+        if (!existingIds.has(s.id)) {
+          merged.push(s);
+        }
+      }
+      
+      set((state) => ({
+        scenes: merged,
+        loadedHouseIds: [...state.loadedHouseIds, houseId],
+      }));
+      
+      return merged.filter((s) => s.houseId === houseId);
     } else {
-      result = [...result, ...customScenes];
+      const result = [...mockScenes, ...customScenes];
+      set({ scenes: result });
+      return result;
     }
-    
-    set((state) => ({
-      scenes: result,
-      loadedHouseIds: houseId ? [...state.loadedHouseIds, houseId] : state.loadedHouseIds,
-    }));
-    
-    return result;
   },
   runScene: async (sceneId) => {
     set({ activeSceneId: sceneId });

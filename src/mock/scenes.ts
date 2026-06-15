@@ -285,6 +285,68 @@ export const scenes: Scene[] = [
     lastRunAt: Date.now() - 86400000 * 3,
     createdAt: Date.now() - 86400000 * 10,
   },
+  {
+    id: 'scene-apt-sleep',
+    name: '度假安睡',
+    icon: 'moon-star',
+    color: '#6366F1',
+    houseId: 'house-apartment-002',
+    enabled: true,
+    triggers: [
+      { id: 'trig-apt-sleep-1', type: 'schedule', config: { cronExpression: '0 23 * * *' } },
+      { id: 'trig-apt-sleep-2', type: 'manual', config: {} },
+    ],
+    actions: [
+      { id: 'act-apt-sleep-1', type: 'setDeviceState', order: 1, target: { deviceId: 'dev-light-011' }, state: { power: false } },
+      { id: 'act-apt-sleep-2', type: 'setDeviceState', order: 2, target: { deviceId: 'dev-light-012' }, state: { power: false } },
+      { id: 'act-apt-sleep-3', type: 'setDeviceState', order: 3, target: { deviceId: 'dev-ac-006' }, state: { power: true, mode: 'auto', temperature: 26, fanSpeed: 1 } },
+      { id: 'act-apt-sleep-4', type: 'notify', order: 4, target: {}, state: { message: '晚安，祝您在海边有个好梦' } },
+    ],
+    lastRunAt: Date.now() - 86400000 * 2,
+    createdAt: Date.now() - 86400000 * 9,
+  },
+  {
+    id: 'scene-apt-leave',
+    name: '度假离家',
+    icon: 'log-out',
+    color: '#F59E0B',
+    houseId: 'house-apartment-002',
+    enabled: true,
+    triggers: [
+      { id: 'trig-apt-leave-1', type: 'location', config: { location: 'leave' } },
+      { id: 'trig-apt-leave-2', type: 'manual', config: {} },
+    ],
+    actions: [
+      { id: 'act-apt-leave-1', type: 'setDeviceState', order: 1, target: { deviceId: 'dev-light-011' }, state: { power: false } },
+      { id: 'act-apt-leave-2', type: 'setDeviceState', order: 2, target: { deviceId: 'dev-light-012' }, state: { power: false } },
+      { id: 'act-apt-leave-3', type: 'setDeviceState', order: 3, target: { deviceId: 'dev-light-013' }, state: { power: false } },
+      { id: 'act-apt-leave-4', type: 'setDeviceState', order: 4, target: { deviceId: 'dev-light-014' }, state: { power: false } },
+      { id: 'act-apt-leave-5', type: 'setDeviceState', order: 5, target: { deviceId: 'dev-ac-005' }, state: { power: false } },
+      { id: 'act-apt-leave-6', type: 'setDeviceState', order: 6, target: { deviceId: 'dev-ac-006' }, state: { power: false } },
+      { id: 'act-apt-leave-7', type: 'notify', order: 7, target: {}, state: { message: '公寓已布防，祝您游玩愉快' } },
+    ],
+    lastRunAt: Date.now() - 86400000 * 1,
+    createdAt: Date.now() - 86400000 * 8,
+  },
+  {
+    id: 'scene-apt-view',
+    name: '海景模式',
+    icon: 'sun',
+    color: '#0EA5E9',
+    houseId: 'house-apartment-002',
+    enabled: true,
+    triggers: [
+      { id: 'trig-apt-view-1', type: 'manual', config: {} },
+      { id: 'trig-apt-view-2', type: 'schedule', config: { cronExpression: '0 17 * * *' } },
+    ],
+    actions: [
+      { id: 'act-apt-view-1', type: 'setDeviceState', order: 1, target: { deviceId: 'dev-curtain-005' }, state: { position: 100 } },
+      { id: 'act-apt-view-2', type: 'setDeviceState', order: 2, target: { deviceId: 'dev-light-014' }, state: { power: true, brightness: 40, colorTemp: 3000 } },
+      { id: 'act-apt-view-3', type: 'notify', order: 3, target: {}, state: { message: '海景模式已开启，尽情享受无敌海景吧' } },
+    ],
+    lastRunAt: Date.now() - 3600000 * 5,
+    createdAt: Date.now() - 86400000 * 7,
+  },
 ];
 
 export const scenesByHouse = (houseId: string) => scenes.filter((s) => s.houseId === houseId);
